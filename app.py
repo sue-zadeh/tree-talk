@@ -51,7 +51,7 @@ def staff():
         return "Illegal Access"      # anyone else other than staff
     else:
       return redirect(url_for('login'))
-    
+   #logout 
   @app.route("/logout") 
   def logout():
     session.pop('user', None)  #session is cleared at logout
