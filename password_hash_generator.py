@@ -53,7 +53,7 @@ for user in users:
     # the salt value we defined earlier. This function returns the hash as a 64
     # character string in hexadecimal.
     password_hash = hashing.hash_value(user.password, PASSWORD_SALT)
-    
+     
     # Check whether the hash matches the original password. We don't really
     # need to do this here: this is just to show how your web app would check a
     # password supplied by the user (user.password) against a hash value
