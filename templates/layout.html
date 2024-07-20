@@ -7,7 +7,7 @@
 		<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
 	</head>
 	<body class="loggedin">
-		<nav class="navtop">
+		<nav class="navtop"> 
 			<div>
 				<h1>Login Example</h1>
                 <a href="{% if user_role == 'admin' %}{{ url_for('admin_home') }}{% elif user_role == 'staff' %}{{ url_for('staff_home') }}{% elif user_role == 'user' %}{{ url_for('user_home') }}{% endif %}"><i class="fas fa-home"></i>Home</a>
