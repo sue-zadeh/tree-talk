@@ -1,13 +1,10 @@
-from flask import render_template
-from flask import request
-from flask import redirect
-from flask import url_for
-from flask import session
+from flask import flask, render_template, request, redirect, url_for, session, flash
 import re
+from werkzeug.utils import secure_filename
+import os
 import mysql.connector
 from flask_hashing import Hashing
-from loginapp import app
-from loginapp import connect
+from app import app, connect
 
 hashing = Hashing(app)  #create an instance of hashing
 
@@ -20,10 +17,54 @@ PASSWORD_SALT = 'ExampleSaltValue'
 
 # Default role assigned to new users upon registration.
 DEFAULT_USER_ROLE = 'user'
+UPLOAD_FOLDER = 'app/static/uploads'
+ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-db_connection = None
+hashing = Hashing(app)
 
-def getCursor():
+def allowed_file(filename):
+  return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+@app.route('/register', method=['GET', 'POST'])
+def register():
+  msg = ''
+  if request.method == 'POST': 
+    password = request.form['password']
+    email = request.form['email']
+    dateOFBirth = request.form['dateOfBirth']
+    Location = request.form['Location']
+    file = request.files['profile_pic']
+    
+    if 'profile_pic' not in request.files or file.filename == '':
+      filename = secure_filename('default.png')
+      msg('No selected file or file part')
+    elif file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        profile_pic = filename
+    else:
+      msg ='file not allowed'    
+      cursor = getCursor()
+      cursor.excute('SELECT user_id FROM users WHERE username = %s', (username,))
+      # cursor.execute('SELECT * FROM accounts WHERE username = %s', (username,))
+    account = cursor.fetchone()
+    if account:
+      msg = 'Account already exists !'
+    elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+      msg = 'Invalid email address !'
+    elif not re.match(r'[A-Za-z0-9]+', username):
+      msg = 'Username must contain only characters and numbers !'
+    elif not username or not password or not email:
+      msg = 'Please fill out the form !'
+    else:
+      password_hash = hashing.hash_value(password, PASSWORD_SALT)
+      cursor.execute = ('INSERT INTO users (username, password_hash, email, role, profile_pic, dateOFBirth, Location) VALUES (%s, %s, %s, %s, %s, %s, %s)', (username, password_hash, email, DEFAULT_USER_ROLE, profile_pic, dateOFBirth, Location))
+      # cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s)', (username, password, email, DEFAULT_USER_ROLE))
+    db_connection.commit()
+    msg = 'You have successfully registered !'
+  elif request.method == 'POST':
+   return render_template('register.html', msg = msg)
+   def getCursor():
     """Gets a new dictionary cursor for the database.
     
     If necessary, a new database connection be created here and used for all
