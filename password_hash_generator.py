@@ -42,6 +42,9 @@ hashing = Hashing(app)
 # for your own web app. You can add as many as you need to the list.
 users = [UserAccount('user1', 'user1pass'), 
          UserAccount('user2', 'user2pass'),
+         UserAccount('user3', 'user3pass'),
+         UserAccount('user4', 'user4pass'),
+         UserAccount('user5', 'user5pass'),
          UserAccount('staff1', 'staff1pass'),
          UserAccount('staff2', 'staff2pass'),
          UserAccount('admin1', 'admin1pass')]
