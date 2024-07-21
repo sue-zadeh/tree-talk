@@ -1,4 +1,4 @@
-from flask import flask, render_template, request, redirect, url_for, session, flash
+from flask import render_template, request, redirect, url_for, session, flash
 import re
 import os
 from werkzeug.utils import secure_filename
@@ -18,10 +18,10 @@ UPLOAD_FOLDER = 'app/static/uploads'
 ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-hashing = Hashing(app)  #create an instance of hashing
+hashing = Hashing(app)  # create an instance of hashing
 
 def allowed_file(filename):
-  return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 def getCursor():
     """Gets a new dictionary cursor for the database.
@@ -29,66 +29,64 @@ def getCursor():
     subsequent to getCursor()."""
     global db_connection
     if db_connection is None or not db_connection.is_connected():
-        db_connection = mysql.connector.connect(user=connect.dbuser, \
-            password=connect.dbpass, host=connect.dbhost, auth_plugin='mysql_native_password',\
-            database=connect.dbname, autocommit=True)
-    
+        db_connection = mysql.connector.connect(user=connect.dbuser,
+                                                password=connect.dbpass, host=connect.dbhost, auth_plugin='mysql_native_password',
+                                                database=connect.dbname, autocommit=True)
+
     cursor = db_connection.cursor(dictionary=True)
     return cursor
 
-@app.route('/register', method=['GET', 'POST'])
+@app.route('/register', methods=['GET', 'POST'])
 def register():
-  msg = ''
-  if request.method == 'POST': 
-    username = request.form['username']
-    first_name = request.form['first_name']
-    last_name = request.form['last_name']
-    password = request.form['password']
-    email = request.form['email']
-    date_of_birth = request.form['date_of_birth']
-    location = request.form['location']
-    file = request.files['profile_pic']
-    
-  if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-    msg = 'Invalid email address !'
-  elif  not re.match(r'[A-Za-z0-9]+', username):
-    msg = 'Username must contain only characters and numbers !'
-  elif not username or not first_name or not last_name or not password or not email or not date_of_birth or not location:
-     msg = 'Please fill out the form !'
-  elif len(password) <8:
-    msg = 'Password must be at least 8 characters long !'
-  elif not any(char.isdigit() for char in password) or not any (char.isalpha() for char in password):
-    msg = 'Password must contain at least one letter and one number !'     
-  if 'profile_pic' not in request.files or file.filename == '':
-       filename = secure_filename('default.png')
-  elif file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        profile_pic = filename
-  else:
-      msg ='file not allowed'
-  if msg == '':    
-      cursor = getCursor()
-      cursor.excute('SELECT user_id FROM users WHERE username = %s', (username,))
-      # cursor.execute('SELECT * FROM accounts WHERE username = %s', (username,))
-      account = cursor.fetchone()
-      
-  if account:
-      msg = 'Account already exists !'
-  else:
-      password_hash = hashing.hash_value(password, PASSWORD_SALT)
-      cursor.execute = ('INSERT INTO users (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)', 
-                       (username, first_name, last_name, password_hash, email, date_of_birth, location, DEFAULT_USER_ROLE, profile_pic))
-      # cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s)', (username, password, email, DEFAULT_USER_ROLE))
-  db_connection.commit()
-  msg = 'You have successfully registered !'
-  flash(msg)
-  return render_template('register.html', msg = msg)
+    msg = ''
+    if request.method == 'POST':
+        username = request.form['username']
+        first_name = request.form['first_name']
+        last_name = request.form['last_name']
+        password = request.form['password']
+        email = request.form['email']
+        date_of_birth = request.form['date_of_birth']
+        location = request.form['location']
+        file = request.files['profile_pic']
 
-  
+        if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+            msg = 'Invalid email address !'
+        elif not re.match(r'[A-Za-z0-9]+', username):
+            msg = 'Username must contain only characters and numbers !'
+        elif not username or not first_name or not last_name or not password or not email or not date_of_birth or not location:
+            msg = 'Please fill out the form !'
+        elif len(password) < 8:
+            msg = 'Password must be at least 8 characters long !'
+        elif not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password):
+            msg = 'Password must contain at least one letter and one number !'
+        if 'profile_pic' not in request.files or file.filename == '':
+            filename = secure_filename('default.png')
+        elif file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            profile_pic = filename
+        else:
+            msg = 'file not allowed'
+        if msg == '':
+            cursor = getCursor()
+            cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
+      # cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s)', (username, password, email, DEFAULT_USER_ROLE))
+            account = cursor.fetchone()
+
+            if account:
+                msg = 'Account already exists !'
+            else:
+                password_hash = hashing.hash_value(password, PASSWORD_SALT)
+                cursor.execute('INSERT INTO users (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
+                               (username, first_name, last_name, password_hash, email, date_of_birth, location, DEFAULT_USER_ROLE, profile_pic))
+                db_connection.commit()
+                msg = 'You have successfully registered !'
+                flash(msg)
+    return render_template('register.html', msg=msg)
 
 if __name__ == '__main__':
     app.run(debug=True)
+  
 
 
 
