@@ -1,7 +1,7 @@
 from flask import flask, render_template, request, redirect, url_for, session, flash
 import re
-from werkzeug.utils import secure_filename
 import os
+from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_hashing import Hashing
 from app import app, connect
@@ -22,6 +22,20 @@ hashing = Hashing(app)  #create an instance of hashing
 
 def allowed_file(filename):
   return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def getCursor():
+    """Gets a new dictionary cursor for the database.
+    If necessary, a new database connection be created here and used for all
+    subsequent to getCursor()."""
+    global db_connection
+    if db_connection is None or not db_connection.is_connected():
+        db_connection = mysql.connector.connect(user=connect.dbuser, \
+            password=connect.dbpass, host=connect.dbhost, auth_plugin='mysql_native_password',\
+            database=connect.dbname, autocommit=True)
+    
+    cursor = db_connection.cursor(dictionary=True)
+    return cursor
+
 @app.route('/register', method=['GET', 'POST'])
 def register():
   msg = ''
@@ -71,19 +85,10 @@ def register():
   flash(msg)
   return render_template('register.html', msg = msg)
 
-  def getCursor():
-    """Gets a new dictionary cursor for the database.
-    If necessary, a new database connection be created here and used for all
-    subsequent to getCursor()."""
-    global db_connection
-    if db_connection is None or not db_connection.is_connected():
-        db_connection = mysql.connector.connect(user=connect.dbuser, \
-            password=connect.dbpass, host=connect.dbhost, auth_plugin='mysql_native_password',\
-            database=connect.dbname, autocommit=True)
-    
-    cursor = db_connection.cursor(dictionary=True)
-    return cursor
+  
 
+if __name__ == '__main__':
+    app.run(debug=True)
 
 
 
@@ -211,6 +216,3 @@ def register():
 
 #    # Redirect to login page
 #    return redirect(url_for('login'))
-
-if __name__ == '__main__':
-    app.run(debug=True)
