@@ -1,7 +1,7 @@
 from flask import Flask
 
 app = Flask(__name__)
-app.secret_key = 'ExampleSecretKey'
+app.secret_key = 'YourSecretKeyHere'
 
 # Default configurations
 app.config['UPLOAD_FOLDER'] = 'app/static/uploads'
