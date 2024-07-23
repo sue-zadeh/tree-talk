@@ -68,8 +68,6 @@ def register():
                 table = 'staffs'
             elif role == 'admin':
                 table = 'admins'
-            else:
-                table = 'users'
             cursor.execute(f'INSERT INTO {table} (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)', 
                            (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic))
             db_connection.commit()
@@ -119,20 +117,30 @@ def edit_profile():
         return render_template('edit_profile.html', account=account)
     return redirect(url_for('login'))
 
-
-@app.route("/login", methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST':
-        user = request.form['nm']
-        userRole = request.form['rl']
-        session['user'] = user  # Set the session's user
-        session['role'] = userRole  # Set the session's role
-        return redirect(url_for('user'))  # Redirect to the user page
-    else:
-        if "user" in session:
-            return redirect(url_for('user'))
-        return render_template('login.html')
-
+    msg = ''
+    if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+        username = request.form['username']
+        user_password = request.form['password']
+        
+        cursor = getCursor()
+        cursor.execute('SELECT user_id, username, password_hash, role FROM users WHERE username = %s', (username,))
+        account = cursor.fetchone()
+        
+        if account:
+            password_hash = account['password_hash']
+            if hashing.check_value(password_hash, user_password, 'ExampleSaltValue'):
+                session['loggedin'] = True
+                session['id'] = account['user_id']
+                session['username'] = account['username']
+                session['role'] = account['role']
+                return redirect(url_for(f"{account['role']}_home"))
+            else:
+                msg = 'Incorrect password!'
+        else:
+            msg = 'Incorrect username!'
+    return render_template('login.html', msg=msg)
 
 @app.route("/user")
 def user():
