@@ -1,10 +1,10 @@
-from flask import render_template, request, redirect, url_for, session, flash
-import re
 import os
+import re
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_hashing import Hashing
-from app import app, connect
+from app import app
 
 @app.route('/')
 def home():
@@ -28,48 +28,96 @@ def getCursor():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     msg = ''
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form and 'email' in request.form:
+    if request.method == 'POST':
         username = request.form['username']
-        password = request.form['password']
-        email = request.form['email']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
+        password = request.form['password']
+        email = request.form['email']
         date_of_birth = request.form['date_of_birth']
         location = request.form['location']
+        role = request.form['role']
         file = request.files['profile_pic']
 
+        if 'profile_pic' not in request.files or file.filename == '':
+            profile_pic = None
+        elif file and allowed_file(file.filename):
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            profile_pic = filename
+        else:
+            msg = 'File not allowed'
+        
         cursor = getCursor()
         cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
         account = cursor.fetchone()
-
+        
         if account:
             msg = 'Account already exists!'
         elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
             msg = 'Invalid email address!'
         elif not re.match(r'[A-Za-z0-9]+', username):
             msg = 'Username must contain only characters and numbers!'
-        elif len(password) < 8 or not re.match(r'[A-Za-z0-9]+', password):
-            msg = 'Password must be at least 8 characters long and contain letters and numbers!'
         elif not username or not password or not email:
             msg = 'Please fill out the form!'
         else:
-            # Save profile picture
-            profile_pic = 'default.png'
+            password_hash = hashing.hash_value(password, 'ExampleSaltValue')
+            if role == 'user':
+                table = 'users'
+            elif role == 'staff':
+                table = 'staffs'
+            elif role == 'admin':
+                table = 'admins'
+            else:
+                table = 'users'
+            cursor.execute(f'INSERT INTO {table} (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)', 
+                           (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic))
+            db_connection.commit()
+            msg = 'You have successfully registered!'
+            session['loggedin'] = True
+            session['username'] = username
+            session['role'] = role
+            return redirect(url_for(f'{role}_home'))
+
+    return render_template('register.html', msg=msg)
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    msg = ''
+    if 'loggedin' in session:
+        cursor = getCursor()
+        if request.method == 'POST':
+            email = request.form['email']
+            date_of_birth = request.form['date_of_birth']
+            location = request.form['location']
+            file = request.files['profile_pic']
+            profile_pic = None
+
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 profile_pic = filename
 
-            password_hash = hashing.hash_value(password, PASSWORD_SALT)
-            cursor.execute('INSERT INTO users (username, password_hash, email, role, first_name, last_name, date_of_birth, location, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                           (username, password_hash, email, DEFAULT_USER_ROLE, first_name, last_name, date_of_birth, location, profile_pic))
+            cursor.execute('UPDATE users SET email = %s, date_of_birth = %s, location = %s, profile_pic = %s WHERE user_id = %s',
+                           (email, date_of_birth, location, profile_pic, session['id']))
             db_connection.commit()
-            msg = 'You have successfully registered!'
-    elif request.method == 'POST':
-        msg = 'Please fill out the form!'
+            msg = 'Profile updated successfully!'
+        
+        cursor.execute('SELECT username, first_name, last_name, email, date_of_birth, location, profile_pic, role FROM users WHERE user_id = %s', (session['id'],))
+        account = cursor.fetchone()
 
-    return render_template('register.html', msg=msg)
+        return render_template('profile.html', account=account, msg=msg)
+    
+    return redirect(url_for('login'))
 
+@app.route('/edit_profile', methods=['GET'])
+def edit_profile():
+    if 'loggedin' in session:
+        cursor = getCursor()
+        cursor.execute('SELECT username, first_name, last_name, email, date_of_birth, location, profile_pic FROM users WHERE user_id = %s', (session['id'],))
+        account = cursor.fetchone()
+        return render_template('edit_profile.html', account=account)
+    return redirect(url_for('login'))
 
 
 @app.route("/login", methods=['GET', 'POST'])
@@ -84,6 +132,7 @@ def login():
         if "user" in session:
             return redirect(url_for('user'))
         return render_template('login.html')
+
 
 @app.route("/user")
 def user():
@@ -113,6 +162,8 @@ def admin():
             return "Illegal Access"  # Anyone else other than admin
     else:
         return redirect(url_for('login'))
+      
+      
 
 @app.route("/logout")
 def logout():
@@ -121,4 +172,4 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5001)
+    app.run(debug=True)

@@ -1,92 +1,115 @@
-from flask import render_template, request, redirect, url_for, session, flash
-import re
 import os
+import re
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_hashing import Hashing
-from app import app, connect
+from app import app
 
-# Change this to your secret key (can be anything, it's for extra protection)
-app.secret_key = 'ExampleSecretKey'
-
-# IMPORTANT: Change 'ExampleSaltValue' to whatever salt value you'll use in
-# your application. If you don't do this, your password hashes won't work!
-PASSWORD_SALT = 'asdf'
-# Default role assigned to new users upon registration.
-DEFAULT_USER_ROLE = 'user'
-UPLOAD_FOLDER = 'app/static/uploads'
-ALLOWED_EXTENSIONS = set(['txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'])
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-hashing = Hashing(app)  # create an instance of hashing
-
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+hashing = Hashing(app)
+db_connection = None
 
 def getCursor():
-    """Gets a new dictionary cursor for the database.
-    If necessary, a new database connection be created here and used for all
-    subsequent to getCursor()."""
     global db_connection
     if db_connection is None or not db_connection.is_connected():
-        db_connection = mysql.connector.connect(user=connect.dbuser,
-                                                password=connect.dbpass, host=connect.dbhost, auth_plugin='mysql_native_password',
-                                                database=connect.dbname, autocommit=True)
+        db_connection = mysql.connector.connect(
+            user='root', password='123Suezx.', host='localhost', database='login', auth_plugin='mysql_native_password'
+        )
+    return db_connection.cursor(dictionary=True)
 
-    cursor = db_connection.cursor(dictionary=True)
-    return cursor
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     msg = ''
     if request.method == 'POST':
         username = request.form['username']
-        first_name = request.form['first_name']
-        last_name = request.form['last_name']
         password = request.form['password']
         email = request.form['email']
         date_of_birth = request.form['date_of_birth']
         location = request.form['location']
+        role = request.form['role']
         file = request.files['profile_pic']
 
-        if not re.match(r'[^@]+@[^@]+\.[^@]+', email):
-            msg = 'Invalid email address !'
-        elif not re.match(r'[A-Za-z0-9]+', username):
-            msg = 'Username must contain only characters and numbers !'
-        elif not username or not first_name or not last_name or not password or not email or not date_of_birth or not location:
-            msg = 'Please fill out the form !'
-        elif len(password) < 8:
-            msg = 'Password must be at least 8 characters long !'
-        elif not any(char.isdigit() for char in password) or not any(char.isalpha() for char in password):
-            msg = 'Password must contain at least one letter and one number !'
         if 'profile_pic' not in request.files or file.filename == '':
-            filename = secure_filename('default.png')
+            profile_pic = None
         elif file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             profile_pic = filename
         else:
-            msg = 'file not allowed'
-        if msg == '':
-            cursor = getCursor()
-            cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
-      # cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s)', (username, password, email, DEFAULT_USER_ROLE))
-            account = cursor.fetchone()
-
-            if account:
-                msg = 'Account already exists !'
+            msg = 'File not allowed'
+        
+        cursor = getCursor()
+        cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
+        account = cursor.fetchone()
+        
+        if account:
+            msg = 'Account already exists!'
+        elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
+            msg = 'Invalid email address!'
+        elif not re.match(r'[A-Za-z0-9]+', username):
+            msg = 'Username must contain only characters and numbers!'
+        elif not username or not password or not email:
+            msg = 'Please fill out the form!'
+        else:
+            password_hash = hashing.hash_value(password, 'ExampleSaltValue')
+            if role == 'user':
+                table = 'users'
+            elif role == 'staff':
+                table = 'staffs'
+            elif role == 'admin':
+                table = 'admins'
             else:
-                password_hash = hashing.hash_value(password, PASSWORD_SALT)
-                cursor.execute('INSERT INTO users (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)',
-                               (username, first_name, last_name, password_hash, email, date_of_birth, location, DEFAULT_USER_ROLE, profile_pic))
-                db_connection.commit()
-                msg = 'You have successfully registered !'
-                flash(msg)
+                table = 'users'
+            cursor.execute(f'INSERT INTO {table} (username, password_hash, email, date_of_birth, location, role, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s)', 
+                           (username, password_hash, email, date_of_birth, location, role, profile_pic))
+            db_connection.commit()
+            msg = 'You have successfully registered!'
+            session['loggedin'] = True
+            session['username'] = username
+            session['role'] = role
+            return redirect(url_for(f'{role}_home'))
+
     return render_template('register.html', msg=msg)
 
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+    msg = ''
+    if 'loggedin' in session:
+        cursor = getCursor()
+        if request.method == 'POST':
+            email = request.form['email']
+            date_of_birth = request.form['date_of_birth']
+            location = request.form['location']
+            file = request.files['profile_pic']
+            profile_pic = None
+
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                profile_pic = filename
+
+            cursor.execute('UPDATE users SET email = %s, date_of_birth = %s, location = %s, profile_pic = %s WHERE user_id = %s',
+                           (email, date_of_birth, location, profile_pic, session['id']))
+            db_connection.commit()
+            msg = 'Profile updated successfully!'
+        
+        cursor.execute('SELECT username, email, date_of_birth, location, profile_pic, role FROM users WHERE user_id = %s', (session['id'],))
+        account = cursor.fetchone()
+
+        return render_template('profile.html', account=account, msg=msg)
+    
+    return redirect(url_for('login'))
+
+
+  
+  
 if __name__ == '__main__':
     app.run(debug=True)
-  
+
+      # cursor.execute('INSERT INTO accounts VALUES (NULL, %s, %s, %s, %s)', (username, password, email, DEFAULT_USER_ROLE))
 
 
 
