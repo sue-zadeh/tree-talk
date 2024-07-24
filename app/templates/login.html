@@ -16,11 +16,12 @@
             <label for="password">
                 <i class="fas fa-lock"></i> Password
             </label>
-            <input type="password" name="password" class="form-control" id="password" placeholder="Password" required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}">
-            <small>Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, and one number.</small>        
-          </div>
+            <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+        </div>
         <div class="msg">{{ msg }}</div>
-        <button type="submit" class="btn btn-primary mt-3">Login</button>
+        <button type="submit" class="btn btn-success mt-3">Login</button>
     </form>
+    <p>Don't you have an account? press <a class="text-success" href="{{ url_for('register') }}" class="active">Register</a>
+
 </div>
 {% endblock %}

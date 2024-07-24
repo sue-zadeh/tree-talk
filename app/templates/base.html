@@ -3,27 +3,52 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{% block title %}{% endblock %}</title>
+    <title>{% block title %}{% endblock %} - Tree Talk</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
+    <style>
+    body, html {
+        height: 100%;
+        margin: 0;
+        background: url("{{ url_for('static', filename='assets/tree_background.jpg') }}") no-repeat center center fixed;
+        background-size: cover;
+    }
+    .overlay {
+        background-color: rgba(255, 255, 255, 0.8); /* Light white transparent background */
+        border-radius: 10px;
+        margin: auto;
+        padding: 20px;
+    }
+    .navbar, .sidebar {
+        background-color: rgba(100, 245, 80, 0.2); /* Slightly transparent background for navbar and sidebar */
+    }
+    .navbar a, .sidebar a {
+        color: #005500; /* Green text for better visibility on light background */
+    }
+</style>
 </head>
-<body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">Login</a>
+<body class="bg-light-green">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light-green">
+        <a class="navbar-brand" href="{{ url_for('home') }}">Tree Talk</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto">
-                <li class="nav-item"><a class="nav-link" href="{% if user_role == 'admin' %}{{ url_for('admin_home') }}{% elif user_role == 'staff' %}{{ url_for('staff_home') }}{% elif user_role == 'user' %}{{ url_for('user_home') }}{% endif %}"><i class="fas fa-home"></i> Home</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a></li>
+                {% if session['username'] %}
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Profile</a></li>
                 <li class="nav-item"><a class="nav-link" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                {% else %}
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
+                <li class="nav-item"><a class="nav-link" href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>
-    <div class="container-fluid">
-        <div class="row">
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+    <div class="container-fluid full-height">
+        <div class="row full-height">
+            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-light-green sidebar">
                 <div class="position-sticky">
                     <ul class="nav flex-column">
                         <li class="nav-item">
@@ -33,7 +58,7 @@
                             <a class="nav-link" href="#"><i class="fas fa-users"></i> Users</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="#"><i class="fas fa-user-shield"></i> Staffs</a>
+                            <a class="nav-link" href="#"><i the class="fas fa-user-shield"></i> Staffs</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="#"><i class="fas fa-user-cog"></i> Admin</a>

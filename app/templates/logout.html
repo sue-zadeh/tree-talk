@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <h1>You have been logged out</h1>
+    <p><a class="text-success"href="{{ url_for('login') }}">Login again</a></p>
+</div>
+{% endblock %}

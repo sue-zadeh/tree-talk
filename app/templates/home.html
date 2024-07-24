@@ -1,4 +1,14 @@
-{% extends 'layout.html' %}
+<!-- templates/home.html -->
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block content %}
+<h2>Welcome, {{ username }}!</h2>
+<p>Your role is: {{ user_role }}</p>
+{% endblock %}
+
+
+
+<!--{% extends 'layout.html' %}
 
 {% block title %}Home{% endblock %}
 
@@ -32,4 +42,4 @@
       <button class="button">Reports</button>
       <button class="button">Get Help</button>
     </div>
-{% endblock %}
+{% endblock %}-->
