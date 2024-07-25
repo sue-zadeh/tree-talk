@@ -2,7 +2,12 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
-<h2>Welcome, {{ username }}!</h2>
+<h2>Welcome to Tree Talk App {{ username }}!</h2>
+body, html {
+  background: url("{{ url_for('static', filename='assets/tree3.jpg') }}") no-repeat center center fixed;
+        background-size: cover;
+}
+
 <p>Your role is: {{ user_role }}</p>
 {% endblock %}
 
