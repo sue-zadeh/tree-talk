@@ -2,13 +2,18 @@
 {% extends "base.html" %}
 {% block title %}Home{% endblock %}
 {% block content %}
+<div class="container">
+  <div class="row justify-content-center">
+      <div class="col-md-6">
 <h2>Welcome to Tree Talk App {{ username }}!</h2>
-body, html {
-  background: url("{{ url_for('static', filename='assets/tree3.jpg') }}") no-repeat center center fixed;
-        background-size: cover;
-}
+<style> 
+  background: url("{{ url_for('static', filename='assets/tree4.png') }}") no-repeat center center fixed;
+  background-size: cover;
+</style>  
 
 <p>Your role is: {{ user_role }}</p>
+<h3>Discuss all your tree-related issues here!</h3>
+
 {% endblock %}
 
 

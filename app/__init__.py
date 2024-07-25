@@ -1,4 +1,6 @@
 from flask import Flask
+# from flask_mysqldb import MySQL
+
 
 app = Flask(__name__)
 app.secret_key = 'ffbdec42bf94eaefd93ed692f13af3f6'

@@ -6,10 +6,14 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-md-6">
+          <div style="text-align: center; flex-grow: 1;">
+            <h3 class="text-dark my-5">Welcome to <br /><i>Tree Talk App!</i></h3>
+            <h5 class="text-dark mt-2 mb-5">Discuss all your tree-related issues here!</h5>
+        </div>
           <style> 
             background: url("{{ url_for('static', filename='assets/tree4.png') }}") no-repeat center center fixed;
           </style>  
-          <h1 class="text-center">Login</h1>
+          <h3 class="text-center text-success my-2">Login</h3>
             <form action="{{ url_for('login') }}" method="post">
                 <div class="form-group">
                     <label for="username"><i class="fas fa-user"></i> Username</label>
