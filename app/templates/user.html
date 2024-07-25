@@ -1,12 +1,26 @@
 {% extends 'base.html' %}
 
+{% block title %}User Profile{% endblock %}
+
 {% block content %}
 <div class="container mt-3">
+    <!-- Profile Section -->
     <div class="profile-header">
         <img src="{{ url_for('static', filename='uploads/' ~ user.profile_pic) }}" alt="Profile Picture" class="img-thumbnail">
         <h1>{{ user.username }}</h1>
-        <h2>{{ user.role|capitalize }}</h2>
+        <h2>Role: {{ user.role|capitalize }}</h2>
     </div>
+
+    <!-- Admin and Moderator Specific Content -->
+    {% if user.role in ['admin', 'moderator'] %}
+    <div class="admin-content">
+        <h3>Admin/Moderator Dashboard</h3>
+        <!-- links or actions specific to admins or moderators -->
+        <p>Manage users, content, and settings specific to admins and moderators.</p>
+    </div>
+    {% endif %}
+
+    <!-- User Messages Form -->
     <div class="message-form">
         <form action="{{ url_for('post_message') }}" method="post">
             <div class="form-group">
@@ -15,15 +29,18 @@
             <button type="submit" class="btn btn-primary">Post</button>
         </form>
     </div>
+
+    <!-- Display Messages -->
     <div class="messages">
         {% for message in messages %}
         <div class="card mt-3">
             <div class="card-body">
                 <p class="card-text">{{ message.text }}</p>
                 <div class="message-actions">
-                    <!-- Users can like, comment or delete their messages -->
+                    <!-- Action buttons for interacting with the message -->
                     <button class="btn btn-light">{{ message.likes }} Likes</button>
                     <button class="btn btn-light">Comment</button>
+                    <!-- Allow editing and deleting own messages -->
                     {% if message.user_id == user.id %}
                     <a href="{{ url_for('edit_message', message_id=message.id) }}" class="btn btn-warning">Edit</a>
                     <a href="{{ url_for('delete_message', message_id=message.id) }}" class="btn btn-danger">Delete</a>
