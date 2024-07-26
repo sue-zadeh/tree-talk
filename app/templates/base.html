@@ -31,13 +31,10 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ml-auto mr-5">
                 <li class="nav-item text-success ml-5"><a class="nav-link text-success mr-5" href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a></li>
-                {% if session['username'] %}
                 <li class="nav-item text-success ml-5"><a class="nav-link text-success mr-5" href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Profile</a></li>
                 <li class="nav-item text-success ml-5"><a class="nav-link text-success mr-5" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
-                {% else %}
                 <li class="nav-item text-success ml-5"><a class="nav-link text-success mr-5" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
                 <li class="nav-item text-success ml-5"><a class="nav-link text-success mr-5" href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a></li>
-                {% endif %}
             </ul>
         </div>
     </nav>

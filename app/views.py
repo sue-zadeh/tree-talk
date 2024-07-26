@@ -16,7 +16,7 @@ def home():
 # hashing = Hashing(app)
 # db_connection = None  # Global variable for database connection
 
-def getCursoe():
+def getCursor():
     """Gets a new dictionary cursor for the database."""
     global db_connection
     import connect
@@ -59,10 +59,6 @@ def register():
             flash(msg, 'error')
             return render_template('register.html', msg=msg)
         
-        cursor = getCursoe()
-        cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
-        account = cursor.fetchone()
-        
         if account:
             msg = 'Account already exists!'
         elif not re.match(r'[^@]+@[^@]+\.[^@]+', email):
@@ -73,40 +69,41 @@ def register():
             msg = 'Please fill out the form!'
         else:
             password_hash = hashing.hash_value(password, 'ExampleSaltValue')
-            cursor.execute('INSERT INTO users (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)', 
-                           (username, first_name, last_name, password_hash, email, date_of_birth, location, role, profile_pic))
-            db_connection.commit()
-            msg = 'You have successfully registered!'
-            flash(msg, 'success')
-            return redirect(url_for('login'))
+         
+            
+        cursor = getCursor()
+        cursor.execute('SELECT user_id FROM users WHERE username = %s', (username,))
+        account = cursor.fetchone()
+        
+        cursor.execute('INSERT INTO users (username, first_name, last_name, email, password_hash, date_of_birth, location, profile_pic) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)',
+                       (username, first_name, last_name, email, password_hash, date_of_birth, location, profile_pic))
+        db_connection.commit()  
+        
+        msg = 'You have successfully registered!'
+        flash(msg, 'success')
+        return redirect(url_for('login'))
 
     return render_template('register.html', msg=msg)
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    msg = ''
-    if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
+    if request.method == 'POST':
         username = request.form['username']
-        user_password = request.form['password']
+        password = request.form['password']
         
-        cursor = getCursoe()
-        cursor.execute('SELECT user_id, username, password_hash, role FROM users WHERE username = %s', (username,))
-        account = cursor.fetchone()
-        
-        if account:
-            password_hash = account['password_hash']
-            if hashing.check_value(password_hash, user_password, 'ExampleSaltValue'):
-                session['loggedin'] = True
-                session['id'] = account['user_id']
-                session['username'] = account['username']
-                session['role'] = account['role']
-                flash('Login successful!', 'success')
-                return redirect(url_for('home'))
-            else:
-                msg = 'Incorrect password!'
+        cursor = getCursor()
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        user = cursor.fetchone()
+
+        if user and hashing.check_value(user['password_hash'], password, 'ExampleSaltValue'):
+            session['user_id'] = user['id']
+            session['username'] = username
+            session['role'] = user['role']
+            return redirect(url_for('user_profile'))
         else:
-            msg = 'Incorrect username!'
-    return render_template('login.html', msg=msg)
+            flash('Invalid username or password', 'error')
+
+    return render_template('login.html')
 
 @app.route('/logout')
 def logout():
@@ -118,7 +115,7 @@ def logout():
 def profile():
     msg = ''
     if 'loggedin' in session:
-        cursor = getCursoe()
+        cursor = getCursor()
         if request.method == 'POST':
             email = request.form['email']
             date_of_birth = request.form['date_of_birth']
@@ -147,11 +144,34 @@ def profile():
 @app.route('/edit_profile', methods=['GET'])
 def edit_profile():
     if 'loggedin' in session:
-        cursor = getCursoe()
+        cursor = getCursor()
         cursor.execute('SELECT username, first_name, last_name, email, date_of_birth, location, profile_pic FROM users WHERE user_id = %s', (session['id'],))
         account = cursor.fetchone()
         return render_template('edit_profile.html', account=account)
     return redirect(url_for('login'))
+  
+@app.route('/community')
+def community():
+    if 'username' not in session:
+        return redirect(url_for('login'))
+
+    cursor = getCursor()
+    cursor.execute("SELECT * FROM messages ORDER BY created_at DESC")
+    messages = cursor.fetchall()
+
+    return render_template('community.html', messages=messages)
+  
+@app.route('/post_message', methods=['POST'])
+def post_message():
+    user_id = session['user_id']
+    text = request.form['message']
+
+    cursor = getCursor()
+    cursor.execute("INSERT INTO messages (user_id, text) VALUES (%s, %s)", (user_id, text))
+    db_connection.commit()
+
+    return redirect(url_for('community'))
+
 
 @app.route('/admin_home')
 def admin_home():
@@ -195,4 +215,4 @@ def admin():
         return redirect(url_for('login'))
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5001)
