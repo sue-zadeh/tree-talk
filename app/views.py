@@ -1,5 +1,3 @@
-import os
-import re
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from werkzeug.utils import secure_filename
 import mysql.connector
@@ -38,7 +36,6 @@ def allowed_file(filename):
 def home():
     return render_template("index.html")
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -53,15 +50,14 @@ def register():
         profile_image = None
 
         cursor, conn = getCursor()
-        
-        #  DD-MM-YYYY format
+
+        # Convert DD-MM-YYYY format to YYYY-MM-DD
         try:
             birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d')
             birth_date = birth_date_obj.strftime('%Y-%m-%d')
         except ValueError:
             flash('Invalid date format. Use YYYY-MM-DD', 'error')
             return redirect(url_for('register'))
-
 
         if not re.match(r'^[A-Za-z\s,]+$', location):
             flash('Location must contain only letters, spaces, and commas.', 'error')
@@ -97,7 +93,6 @@ def register():
     
     return render_template("register.html")
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -108,10 +103,10 @@ def login():
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
 
-        if user and hashing.check_value(user[5], password, 'ExampleSaltValue'):
+        if user and hashing.check_value(user[4], password, 'ExampleSaltValue'):
             session['user_id'] = user[0]
             session['username'] = username
-            session['role'] = user[9]
+            session['role'] = user[8]
             flash('Login successful!', 'success')
             return redirect(url_for('profile'))
         else:
@@ -121,7 +116,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.clear()
+    session.clear()  
     flash('You have been logged out.', 'success')
     return redirect(url_for('home'))
 
