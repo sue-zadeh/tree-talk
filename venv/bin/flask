@@ -1,4 +1,4 @@
-#!/root/devacademy/1/Tree_Message_Board/venv/bin/python3
+#!/root/devacademy/1/tree-talk/venv/bin/python3
 # -*- coding: utf-8 -*-
 import re
 import sys
