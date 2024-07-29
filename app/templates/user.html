@@ -6,7 +6,7 @@
 <div class="container mt-3">
     <!-- Profile Section -->
     <div class="profile-header">
-        <img src="{{ url_for('static', filename='uploads/' ~ user.profile_pic) }}" alt="Profile Picture" class="img-thumbnail">
+        <img src="{{ url_for('static', filename='uploads/' ~ user.profile_image) }}" alt="Profile Picture" class="img-thumbnail">
         <h1>{{ user.username }}</h1>
         <h2>Role: {{ user.role|capitalize }}</h2>
     </div>
@@ -41,7 +41,7 @@
                     <button class="btn btn-light">{{ message.likes }} Likes</button>
                     <button class="btn btn-light">Comment</button>
                     <!-- Allow editing and deleting own messages -->
-                    {% if message.user_id == user.id %}
+                    {% if message.user_id == user.user_id %}
                     <a href="{{ url_for('edit_message', message_id=message.id) }}" class="btn btn-warning">Edit</a>
                     <a href="{{ url_for('delete_message', message_id=message.id) }}" class="btn btn-danger">Delete</a>
                     {% endif %}

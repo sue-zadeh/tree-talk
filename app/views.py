@@ -38,7 +38,6 @@ def allowed_file(filename):
 def home():
     return render_template("index.html")
 
-
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -54,14 +53,12 @@ def register():
 
         cursor, conn = getCursor()
         
-        #  DD-MM-YYYY format
         try:
             birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d')
             birth_date = birth_date_obj.strftime('%Y-%m-%d')
         except ValueError:
             flash('Invalid date format. Use YYYY-MM-DD', 'error')
             return redirect(url_for('register'))
-
 
         if not re.match(r'^[A-Za-z\s,]+$', location):
             flash('Location must contain only letters, spaces, and commas.', 'error')
@@ -97,7 +94,6 @@ def register():
     
     return render_template("register.html")
 
-
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -108,12 +104,12 @@ def login():
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
 
-        if user and hashing.check_value(user[5], password, 'ExampleSaltValue'):
+        if user and hashing.check_value(password, user[4], 'ExampleSaltValue'):
             session['user_id'] = user[0]
             session['username'] = username
             session['role'] = user[9]
             flash('Login successful!', 'success')
-            return redirect(url_for('profile'))
+            return redirect(url_for('message'))
         else:
             flash('Invalid username or password', 'error')
 
@@ -121,7 +117,7 @@ def login():
 
 @app.route('/logout')
 def logout():
-    session.clear()
+    session.clear()  
     flash('You have been logged out.', 'success')
     return redirect(url_for('home'))
 
@@ -131,8 +127,10 @@ def profile():
         cursor, conn = getCursor()
         cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
         user = cursor.fetchone()
-        return render_template("profile.html", user=user)
-    return redirect(url_for('login'))
+        cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
+        messages = cursor.fetchall()
+        return render_template("profile.html", user=user, messages=messages)
+    return redirect(url_for('profile'))
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 def edit_profile():
@@ -183,17 +181,53 @@ def post_message():
 
     return redirect(url_for('community'))
 
-@app.route('/admin_home')
-def admin_home():
-    if 'role' not in session or session['role'] != 'admin':
-        return redirect(url_for('login'))
-    return render_template('admin_home.html')
-
-@app.route('/moderator_home')
-def moderator_home():
-    if 'role' not in session or session['role'] != 'moderator':
-        return redirect(url_for('login'))
-    return render_template('moderator_home.html')
+@app.route('/users',methods=['GET', 'POST'])
+def users():
+  results = []
+  message = ""
+  if request.method == 'POST':
+        search_query = request.form.get('search', '').strip()
+        if search_query:
+            cursor, _ = getCursor()
+            if cursor:
+                cursor.execute("SELECT user_id, profile_image, first_name, last_name FROM users role='admin' AND (username LIKE %s OR first_name LIKE %s OR last_name LIKE %s)", 
+                               ('%' + search_query + '%', '%' + search_query + '%'))
+                results = cursor.fetchall()
+                if not results:
+                    message = f"Sorry, there are no results for '{search_query}'."
+  return render_template("users.html", results=results, message=message)
+@app.route('/admins')
+def admins():
+   results = []
+   message = ""
+   if request.method == 'POST':
+        search_query = request.form.get('search', '').strip()
+        if search_query:
+            cursor, _ = getCursor()
+            if cursor:
+                cursor.execute("SELECT user_id, profile_image, first_name, last_name FROM users role='admin' AND (username LIKE %s OR first_name LIKE %s OR last_name LIKE %s)", 
+                               ('%' + search_query + '%', '%' + search_query + '%'))
+                results = cursor.fetchall()
+                if not results:
+                    message = f"Sorry, there are no results for '{search_query}'."
+   return render_template("admins.html", results=results, message=message)
+  
+   
+@app.route('/moderators')
+def moderators():
+  results = []
+  message = ""
+  if request.method == 'POST':
+        search_query = request.form.get('search', '').strip()
+        if search_query:
+            cursor, _ = getCursor()
+            if cursor:
+                cursor.execute("SELECT user_id, profile_image, first_name, last_name FROM users role='admin' AND (username LIKE %s OR first_name LIKE %s OR last_name LIKE %s)", 
+                               ('%' + search_query + '%', '%' + search_query + '%'))
+                results = cursor.fetchall()
+                if not results:
+                    message = f"Sorry, there are no results for '{search_query}'."
+  return render_template("moderators.html", results=results, message=message)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5001)

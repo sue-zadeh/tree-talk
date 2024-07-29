@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css">
     <style>
-    
     .overlay {
         background-color: rgba(255, 255, 255, 0.8); /* Light white transparent background */
         border-radius: 10px;
@@ -34,7 +33,7 @@
                 <li class="nav-item text-success ml-5"><a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'profile' else '' }}" href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Profile</a></li>
                 <li class="nav-item text-success ml-5"><a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'logout' else '' }}" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                 <li class="nav-item text-success ml-5"><a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'login' else '' }}" href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> Login</a></li>
-                <li class="nav-item text-success ml-5"><a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'register' else '' }}" href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> {{ 'Edit Register' if mode == 'Edit' else 'Register'}}</a></li>
+                <li class="nav-item text-success ml-5"><a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'register' else '' }}" href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a></li>
             </ul>
         </div>
     </nav>
@@ -42,18 +41,18 @@
         <div class="row full-height">
             <nav id="sidebar" class="col-md-6 col-lg-2 d-md-block bg-light-green sidebar">
                 <div class="position-sticky">
-                    <ul class="nav flex-column">
+                    <ul class="nav flex-column h-50">
                         <li class="nav-item">
-                            <a class="nav-link active mt-5 {{ 'text-danger' if request.endpoint == 'home' else '' }}" aria-current="page" href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a>
+                            <a class="nav-link active my-5 {{ 'text-danger' if request.endpoint == 'home' else '' }}" aria-current="page" href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a>
                         </li>
                         <li class="nav-item">
-                          <a class="nav-link mt-3 fs-5 {{ 'text-danger' if request.endpoint == 'users' else '' }}" href="#"><i class="fas fa-users"></i>Users</a>
+                          <a class="nav-link my-4 fs-5 {{ 'text-danger' if request.endpoint == 'users' else '' }}" href="{{ url_for('users') }}"><i class="fas fa-users"></i> Users</a>
                       </li>
                       <li class="nav-item">
-                          <a class="nav-link mt-3 fs-5 {{ 'text-danger' if request.endpoint == 'moderators' else '' }}" href="#"><i the class="fas fa-user-shield"></i>Moderators</a>
+                          <a class="nav-link my-4 fs-5 {{ 'text-danger' if request.endpoint == 'moderators' else '' }}" href="{{ url_for('moderators') }}"><i class="fas fa-user-shield"></i> Moderators</a>
                       </li>
                       <li class="nav-item">
-                          <a class="nav-link mt-3 fs-5 {{ 'text-danger' if request.endpoint == 'admins' else '' }}" href="#"><i class="fas fa-user-cog"></i>Admins</a>
+                          <a class="nav-link my-4 fs-5 {{ 'text-danger' if request.endpoint == 'admins' else '' }}" href="{{ url_for('admins') }}"><i class="fas fa-user-cog"></i> Admins</a>
                         </li>
                       </ul>  
                   </div>

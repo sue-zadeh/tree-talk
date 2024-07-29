@@ -45,9 +45,40 @@ users = [UserAccount('user1', 'user1pass'),
          UserAccount('user3', 'user3pass'),
          UserAccount('user4', 'user4pass'),
          UserAccount('user5', 'user5pass'),
-         UserAccount('staff1', 'staff1pass'),
-         UserAccount('staff2', 'staff2pass'),
-         UserAccount('admin1', 'admin1pass')]
+         UserAccount('user6', 'user1pass'), 
+         UserAccount('user7', 'user2pass'),
+         UserAccount('user8', 'user3pass'),
+         UserAccount('user9', 'user4pass'),
+         UserAccount('user10', 'user5pass'),
+         UserAccount('user11', 'user1pass'), 
+         UserAccount('user12', 'user2pass'),
+         UserAccount('user13', 'user3pass'),
+         UserAccount('user14', 'user4pass'),
+         UserAccount('user15', 'user5pass'),
+         UserAccount('user16', 'user1pass'), 
+         UserAccount('user17', 'user2pass'),
+         UserAccount('user18', 'user3pass'),
+         UserAccount('user19', 'user4pass'),
+         UserAccount('user20', 'user5pass'),
+         UserAccount('user21', 'user4pass'),
+         UserAccount('user22', 'user5pass'),
+         
+         UserAccount('moderator1', 'moderator1pass'),
+         UserAccount('moderator2', 'moderator2pass'),
+         UserAccount('moderator3', 'moderator1pass'),
+         UserAccount('moderator4', 'moderator2pass'),
+         UserAccount('moderator5', 'moderator1pass'),
+         UserAccount('moderator6', 'moderator2pass'),
+         UserAccount('moderator7', 'moderator1pass'),
+         UserAccount('moderator8', 'moderator2pass'),
+
+         
+         UserAccount('admin1', 'admin1pass'),
+         UserAccount('admin2', 'admin1pass'),
+         UserAccount('admin3', 'admin1pass'),
+         UserAccount('admin4', 'admin1pass')]
+
+
 
 print('Username | Password | Hash | Password Matches Hash')
 
