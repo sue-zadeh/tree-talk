@@ -38,6 +38,15 @@
             <div class="text-center mt-4">
                 <a href="{{ url_for('edit_profile') }}" class="btn btn-success">Edit Profile</a>
             </div>
+            <div class="text-center mt-4">
+              <a href="{{ url_for('delete_profile') }}" class="btn btn-success">Delete Account</a>
+          </div>
+          <div class="text-center mt-4">
+            <a href="{{ url_for('change the password') }}" class="btn btn-success">Change the password</a>
+            <div class="text-center mt-4">
+              <a href="{{ url_for('change profile picture') }}" class="btn btn-success">Change the profile picture</a>
+          </div>
+        </div>
         </div>
         <div class="container mt-5">
             <h2>Messages</h2>
@@ -64,6 +73,34 @@
             </div>
         </div>
         {% endblock %}
+
+
+
+
+       <!-- {% extends 'layout.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h2>Profile Page</h2>
+<div>
+    <p>Your account details are below:</p>
+    <table>
+        <tr>
+            <td>Username:</td>
+            <td>{{ account['username'] }}</td>
+        </tr>
+        <tr>
+            <td>Email:</td>
+            <td>{{ account['email'] }}</td>
+        </tr>
+        <tr>
+            <td>Role:</td>
+            <td>{{ account['role'] }}</td>
+        </tr>
+    </table>
+</div>
+{% endblock %}-->
 
 
 

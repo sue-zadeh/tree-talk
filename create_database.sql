@@ -26,6 +26,8 @@ CREATE TABLE users (
     status ENUM('active', 'inactive') NOT NULL DEFAULT 'active'
 );
 
+
+
 -- -----------------------------------------------------
 -- Table TreeTalk.messages
 -- -----------------------------------------------------

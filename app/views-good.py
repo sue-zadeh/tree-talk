@@ -45,9 +45,9 @@ def register():
         username = request.form['username']
         first_name = request.form['first_name']
         last_name = request.form['last_name']
-        password_hash = request.form['password_hash']
+        password = request.form['password']
         email = request.form['email']
-        birth_date = request.form['birth_date']
+        birth_date = request.form['date_of_birth']
         location = request.form['location']
         file = request.files['profile_image']
         profile_image = None
@@ -84,7 +84,7 @@ def register():
             flash('Username already exists!', 'error')
             return redirect(url_for('register'))
         
-        password_hash = hashing.hash_value(password_hash, '1234abcd')
+        password_hash = hashing.hash_value(password, 'ExampleSaltValue')
 
         cursor.execute("""
             INSERT INTO users (username, first_name, last_name, email, password_hash, birth_date, location, profile_image)
@@ -102,42 +102,28 @@ def register():
 def login():
     if request.method == 'POST':
         username = request.form['username']
-        password_hash = request.form['password_hash']
+        password = request.form['password']
         
         cursor, conn = getCursor()
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
 
-        if user and hashing.check_value(user[5], password_hash, '1234abcd'):
+        if user and hashing.check_value(user[5], password, 'ExampleSaltValue'):
             session['user_id'] = user[0]
             session['username'] = username
             session['role'] = user[9]
             flash('Login successful!', 'success')
-            
             return redirect(url_for('profile'))
         else:
             flash('Invalid username or password', 'error')
 
     return render_template('login.html')
 
-
-
-# http://localhost:5000/logout - this will be the logout page
 @app.route('/logout')
 def logout():
-    # Remove session data, this will log the user out
-   session.pop('loggedin', None)
-   session.pop('id', None)
-   session.pop('username', None)
-   flash('You have been logged out.', 'success')
-   return redirect(url_for('home'))
-
-
-# @app.route('/logout')
-# def logout():
-#     session.clear()  
-#     flash('You have been logged out.', 'success')
-#     return redirect(url_for('home'))
+    session.clear()
+    flash('You have been logged out.', 'success')
+    return redirect(url_for('home'))
 
 @app.route('/profile', methods=['GET'])
 def profile():
@@ -145,11 +131,8 @@ def profile():
         cursor, conn = getCursor()
         cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
         user = cursor.fetchone()
-        cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
-        messages = cursor.fetchall()
-        account_to_delete = cursor.fetchone()
-        return render_template("profile.html", user=user, account_to_delete=account_to_delete)
-
+        return render_template("profile.html", user=user)
+    return redirect(url_for('login'))
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 def edit_profile():
@@ -164,7 +147,7 @@ def edit_profile():
 
             if file and allowed_file(file.filename):
                 filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOADS_FOLDER'], filename))
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 profile_image = filename
 
             cursor.execute("""
@@ -197,100 +180,20 @@ def post_message():
     cursor, conn = getCursor()
     cursor.execute("INSERT INTO messages (user_id, text) VALUES (%s, %s)", (user_id, text))
     conn.commit()
+
     return redirect(url_for('community'))
-  
-# memders(sidebar item)
-@app.route('/members', methods=['GET', 'POST'])
-def members():
-    cursor, conn = getCursor()  # Ensure connection management is handled
-    search_query = request.form.get('search', '').strip() if request.method == 'POST' else ''
-    results = []
-    message = ""
 
-    if search_query:
-        # Perform the search
-        cursor.execute("""
-            SELECT user_id, COALESCE(profile_image, '/static/assets/default.png') AS profile_image, first_name, last_name 
-            FROM users 
-            WHERE (role = 'member') AND (first_name LIKE %s OR last_name LIKE %s) 
-            ORDER BY first_name, last_name
-        """, ('%' + search_query + '%', '%' + search_query + '%'))
-        results = cursor.fetchall()
-        if not results:
-            message = f"Sorry, there are no results for '{search_query}'."
+@app.route('/admin_home')
+def admin_home():
+    if 'role' not in session or session['role'] != 'admin':
+        return redirect(url_for('login'))
+    return render_template('admin_home.html')
 
-    # Always fetch all members for the gallery, regardless of search
-    cursor.execute("""
-        SELECT user_id, COALESCE(profile_image, '/static/assets/default.png') AS profile_image, first_name, last_name
-        FROM users
-        WHERE role = 'member'
-        ORDER BY first_name, last_name
-    """)
-    members = cursor.fetchall()
-    return render_template("members.html", results=results, members=members, message=message)
-
-    # admins(sidebar item)
-@app.route('/admins', methods=['GET', 'POST'])
-def admins():
-    cursor, conn = getCursor()  # Ensure connection management is handled
-    search_query = request.form.get('search', '').strip() if request.method == 'POST' else ''
-    results = []
-    message = ""
-
-    if search_query:
-        # Perform the search
-        cursor.execute("""
-            SELECT user_id, COALESCE(profile_image, '/static/assets/default.png') AS profile_image, first_name, last_name 
-            FROM users 
-            WHERE (role = 'admin') AND (first_name LIKE %s OR last_name LIKE %s) 
-            ORDER BY first_name, last_name
-        """, ('%' + search_query + '%', '%' + search_query + '%'))
-        results = cursor.fetchall()
-        if not results:
-            message = f"Sorry, there are no results for '{search_query}'."
-
-    # Always fetch all members for the gallery, regardless of search
-    cursor.execute("""
-        SELECT user_id, COALESCE(profile_image, '/static/assets/default.png') AS profile_image, first_name, last_name
-        FROM users
-        WHERE role = 'admin'
-        ORDER BY first_name, last_name
-    """)
-    admins = cursor.fetchall()
-    return render_template("admins.html", results=results, admins=admins, message=message)
-
-
-   
-  # moderators(sidebar item)
-@app.route('/moderators' , methods=['GET', 'POST'])
-def moderators():
-    cursor, conn = getCursor()  # Ensure connection management is handled
-    search_query = request.form.get('search', '').strip() if request.method == 'POST' else ''
-    results = []
-    message = ""
-
-    if search_query:
-        # Perform the search
-        cursor.execute("""
-            SELECT user_id, COALESCE(profile_image, '/static/assets/default.png') AS profile_image, first_name, last_name 
-            FROM users 
-            WHERE (role = 'moderator') AND (first_name LIKE %s OR last_name LIKE %s) 
-            ORDER BY first_name, last_name
-        """, ('%' + search_query + '%', '%' + search_query + '%'))
-        results = cursor.fetchall()
-        if not results:
-            message = f"Sorry, there are no results for '{search_query}'."
-
-    # Always fetch all members for the gallery, regardless of search
-    cursor.execute("""
-        SELECT user_id, COALESCE(profile_image, '/static/assets/default.jpg') AS profile_image, first_name, last_name
-        FROM users
-        WHERE role = 'moderator'
-        ORDER BY first_name, last_name
-    """)
-    moderators = cursor.fetchall()
-    return render_template("moderators.html", results=results, moderators=moderators, message=message)
-
+@app.route('/moderator_home')
+def moderator_home():
+    if 'role' not in session or session['role'] != 'moderator':
+        return redirect(url_for('login'))
+    return render_template('moderator_home.html')
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5002)
+    app.run(debug=True, port=5001)

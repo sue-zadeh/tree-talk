@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Members{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h2 class="text-center text-danger">Search Members</h2>
+    <form action="{{ url_for('members') }}" method="post">
+        <div class="form-group">
+            <input type="text" class="form-control" id="search" name="search" placeholder="Member First Name or Family Name" required>
+            <button type="submit" class="btn btn-success mt-3">Search</button>
+        </div>
+    </form>
+
+    {% if results %}
+    <h3 class="text-danger text-center mt-3">Search Results</h3>
+    <div class="row">
+        {% for member in results %}
+        <div class="col-md-4 mt-3">
+            <div class="card">
+                <img class="card-img-top" src="{{ member[1] }}" alt="Profile Image of {{ member[2] }} {{ member[3] }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ member[2] }} {{ member[3] }}</h5>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% elif message %}
+    <h3 class="text-danger text-center">{{ message }}</h3>
+    {% endif %}
+
+    <h3 class="text-success text-center mt-5">All Members</h3>
+    <div class="row">
+        {% for member in members %}
+        <div class="col-md-4 mt-3">
+            <div class="card">
+                <img class="card-img-top" src="{{ member[1] }}" alt="Profile Image of {{ member[2] }} {{ member[3] }}">
+                <div class="card-body">
+                    <h5 class="card-title">{{ member[2] }} {{ member[3] }}</h5>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

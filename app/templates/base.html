@@ -46,7 +46,7 @@
                             <a class="nav-link active my-5 {{ 'text-danger' if request.endpoint == 'home' else '' }}" aria-current="page" href="{{ url_for('home') }}"><i class="fas fa-home"></i> Home</a>
                         </li>
                         <li class="nav-item">
-                          <a class="nav-link my-4 fs-5 {{ 'text-danger' if request.endpoint == 'users' else '' }}" href="{{ url_for('users') }}"><i class="fas fa-users"></i> Users</a>
+                          <a class="nav-link my-4 fs-5 {{ 'text-danger' if request.endpoint == 'members' else '' }}" href="{{ url_for('members') }}"><i class="fas fa-users"></i> Members</a>
                       </li>
                       <li class="nav-item">
                           <a class="nav-link my-4 fs-5 {{ 'text-danger' if request.endpoint == 'moderators' else '' }}" href="{{ url_for('moderators') }}"><i class="fas fa-user-shield"></i> Moderators</a>
@@ -58,6 +58,21 @@
                   </div>
               </nav>
               <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                  {% with messages = get_flashed_messages(with_categories=true) %}
+                    {% if messages %}
+                      <div class="alert-container mt-4">
+                        {% for category, message in messages %}
+                          <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                              <span aria-hidden="true">&times;</span>
+                            </button>
+                          </div>
+                        {% endfor %}
+                      </div>
+                    {% endif %}
+                  {% endwith %}
                   {% block content %}{% endblock %}
               </main>
           </div>
