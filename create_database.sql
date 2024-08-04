@@ -18,7 +18,7 @@ CREATE TABLE users (
     first_name VARCHAR(50) NOT NULL,
     last_name VARCHAR(50) NOT NULL,
     email VARCHAR(320) NOT NULL,
-    password_hash CHAR(64) NOT NULL,
+    password CHAR(64) NOT NULL,
     birth_date DATE NOT NULL,
     location VARCHAR(50) NOT NULL,
     profile_image VARCHAR(255) DEFAULT 'default.png',
@@ -51,6 +51,34 @@ CREATE TABLE replies (
     user_id INT NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    parent_id INT NULL,
     FOREIGN KEY (message_id) REFERENCES messages(message_id),
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (parent_id) REFERENCES replies(reply_id) -- This allows replies to reference other replies
 );
+
+-- -----------------------------------------------------
+-- Table TreeTalk.likes
+-- -----------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS likes (
+    like_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    message_id INT NOT NULL,
+    type ENUM('like', 'dislike') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (message_id) REFERENCES messages(message_id)
+);
+
+-- -----------------------------------------------------
+-- Table TreeTalk.media
+-- -----------------------------------------------------
+CREATE TABLE `media` (
+    `media_id` INT AUTO_INCREMENT PRIMARY KEY,
+    `message_id` INT,
+    `filename` VARCHAR(255),
+    `uploaded_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`message_id`) REFERENCES `messages`(`message_id`) ON DELETE CASCADE
+);
+

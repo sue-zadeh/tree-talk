@@ -1,22 +1,57 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-3">
-    <h1>Community Feed</h1>
-    <div class="messages">
-        {% for message in messages %}
-        <div class="card mt-3">
-            <div class="card-body">
-                <h5 class="card-title">{{ message.user.username }}</h5>
-                <h6 class="card-subtitle mb-2 text-muted">{{ message.created_at }}</h6>
-                <p class="card-text">{{ message.text }}</p>
-                <div class="message-actions">
-                    <button class="btn btn-light">{{ message.likes }} Likes</button>
-                    <button class="btn btn-light">Comment</button>
-                </div>
-            </div>
+<h2 class="text-center mt-5 mb-3">Community Center</h2>
+<h3 class='text-center text-danger mb-3'>Do you have tree-related issues?<br /> Write it here.</h3>
+
+<!-- Form to submit new message -->
+<form action="{{ url_for('community') }}" method="POST" enctype="multipart/form-data">
+    <div class="form-group">
+        <textarea class="form-control" name="content" placeholder="Write your message here..." required></textarea>
+    </div>
+    <div class="form-group">
+        <input type="file" class="form-control-file" name="media">
+    </div>
+    <button type="submit" class="btn btn-success w-35">Send</button>
+</form>
+
+<hr>
+
+<!-- Display the list of messages -->
+{% for message in messages %}
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">{{ message.username }}</h5>
+        <p class="card-text text-left">{{ message.content }}</p>
+        
+        <!-- Display image if available -->
+        {% if message.filename %}
+            <div class="text-center">
+                <img src="{{ url_for('static', filename='uploads/' ~ message.filename) }}" class="img-fluid" alt="Attached image" style="max-width: 100%; height: auto;">
+           </div>
+        {% endif %}
+        
+        <!-- Buttons for liking, disliking, and replying to the message -->
+        <div class="mt-3">
+            <form action="{{ url_for('like_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-success">Like</button>
+            </form>
+            <form action="{{ url_for('dislike_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-warning">Dislike</button>
+            </form>
+            <form action="{{ url_for('delete_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-danger">Delete</button>
+            </form>
         </div>
-        {% endfor %}
+
+        <!-- Form for replying to the message -->
+        <form action="{{ url_for('post_message') }}" method="POST" class="mt-3">
+            <div class="form-group">
+                <textarea class="form-control" name="content" placeholder="Put your comment here..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">Comment</button>
+        </form>
     </div>
 </div>
+{% endfor %}
 {% endblock %}

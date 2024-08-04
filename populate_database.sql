@@ -85,15 +85,47 @@ INSERT INTO messages (user_id, title, content) VALUES
 (19, 'Community Events', 'Upcoming gardening and landscaping events.'),
 (20, 'Wildlife in Gardens', 'How to attract and manage wildlife in your gardens.');
 
--- Insert Replies
-INSERT INTO replies (message_id, user_id, content) VALUES
-(1, 2, 'Thanks for the warm welcome!'),
-(2, 1, 'Understood, thanks for the guidelines.'),
-(3, 3, 'Great tips, thanks!'),
-(4, 4, 'Really helpful, thank you!'),
-(5, 2, ''ve been looking for this info.'),
-(6, 3, 'Absolutely agree with this point.'),
-(7, 1, 'Interesting approach, thanks for sharing.'),
-(8, 2, 'Helpful, was just planning my garden.'),
-(9, 3, 'That's a useful tip!'),
-(10, 1, 'Thanks, this was very needed.');
+
+
+ --Replies
+INSERT INTO replies (message_id, user_id, content, parent_id) VALUES
+(1, 2, 'Thanks for the warm welcome!', 1),
+(2, 1, 'Understood, thanks for the guidelines.', 2),
+(3, 3, 'Great tips, thanks!', 3),
+(4, 4, 'Really helpful, thank you!', 4),
+(5, 2, ''ve been looking for this info.', 5),
+(6, 3, 'Absolutely agree with this point.', 6),
+(7, 1, 'Interesting approach, thanks for sharing.', 7),
+(8, 2, 'Helpful, was just planning my garden.', 8),
+(9, 3, 'That's a useful tip!', 9),
+(10, 1, 'Thanks, this was very needed.', 10);
+
+
+-- Insert data into the likes table
+INSERT INTO likes (user_id, message_id, type) VALUES
+(1, 1, 'like'),
+(2, 2, 'like'),
+(3, 3, 'like'),
+(4, 4, 'like'),
+(5, 5, 'like'),
+(6, 6, 'like'),
+(7, 7, 'like'),
+(8, 8, 'like'),
+(9, 9, 'like'),
+(10, 10, 'like'),
+(11, 11, 'like'),
+(12, 12, 'like'),
+(13, 13, 'like'),
+(14, 14, 'like'),
+(15, 15, 'like'),
+(16, 16, 'like'),
+(17, 17, 'like'),
+(18, 18, 'like');
+
+-- Insert data into the media table
+INSERT INTO media (message_id, filename) VALUES
+(1, 'image1.png'),
+(2, 'image2.jpg'),
+(3, 'image3.gif'),
+(1, 'image4.png'),
+(2, 'image5.jpg');
