@@ -87,7 +87,7 @@ INSERT INTO messages (user_id, title, content) VALUES
 
 
 
- --Replies
+--Replies
 INSERT INTO replies (message_id, user_id, content, parent_id) VALUES
 (1, 2, 'Thanks for the warm welcome!', 1),
 (2, 1, 'Understood, thanks for the guidelines.', 2),
@@ -100,27 +100,12 @@ INSERT INTO replies (message_id, user_id, content, parent_id) VALUES
 (9, 3, 'That's a useful tip!', 9),
 (10, 1, 'Thanks, this was very needed.', 10);
 
-
--- Insert data into the likes table
+-- Insert likes 
 INSERT INTO likes (user_id, message_id, type) VALUES
 (1, 1, 'like'),
 (2, 2, 'like'),
 (3, 3, 'like'),
-(4, 4, 'like'),
-(5, 5, 'like'),
-(6, 6, 'like'),
-(7, 7, 'like'),
-(8, 8, 'like'),
-(9, 9, 'like'),
-(10, 10, 'like'),
-(11, 11, 'like'),
-(12, 12, 'like'),
-(13, 13, 'like'),
-(14, 14, 'like'),
-(15, 15, 'like'),
-(16, 16, 'like'),
-(17, 17, 'like'),
-(18, 18, 'like');
+(4, 4, 'like');
 
 -- Insert data into the media table
 INSERT INTO media (message_id, filename) VALUES

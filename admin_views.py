@@ -1,9 +1,9 @@
-from app import app
+from app import views
 
-@app.route('/admin/dashboard')
+@views.route('/admin/dashboard')
 def admin_dashboard():
   return "Admin Dashboard"
 
-@app.route('/admin/profile')
+@views.route('/admin/profile')
 def admin_profile():
   return "Admin Profile"

@@ -8,7 +8,6 @@
         <div class="col-md-6">
             <h1 class="text-center text-success">Login</h1>
 
-            <!-- Flash messages -->
             {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                     {% for category, message in messages %}
@@ -18,15 +17,26 @@
             {% endwith %}
             
             <form action="{{ url_for('login') }}" method="post">
+              <label for="username">
+                <i class="fas fa-user"></i>
+              </label>
+              <input type="text" name="username" placeholder="Username" id="username" required>
+              <label for="password">
+                <i class="fas fa-lock"></i>
+              </label>
+              <input type="password" name="password" placeholder="Password" id="password" required>
+              <div class="msg">{{ msg }}</div>
+              <input class="btn btn-success btn-block mt-4" type="submit" value="Login">
+            </form>
                 <div class="form-group">
                     <label for="username"><i class="fas fa-user"></i> Username</label>
-                    <input type="text" name="username" class="form-control" id="username" placeholder="Username" required>
+                    <input type="text" name="username" class="form-control" placeholder="Username" id="username" required>
                 </div>
                 <div class="form-group">
                     <label for="password"><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" name="password" class="form-control" id="password" placeholder="Password" required>
+                    <input type="password" name="password" class="form-control" placeholder="Password" id="password" required>
                 </div>
-                <button type="submit" class="btn btn-success btn-block mt-4"><i class="fas fa-sign-in-alt"></i> Login</button>
+                <button type="submit" value="Login" class="btn btn-success btn-block mt-4"><i class="fas fa-sign-in-alt"></i> Login</button>
             </form>
         </div>
     </div>

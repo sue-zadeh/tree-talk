@@ -153,3 +153,34 @@ img {
   margin-left: auto;
   margin-right: auto;
 }
+.card {
+  background-color: #f9f9f9;
+  border: 1px solid #e0e0e0;
+   margin: 20px auto;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    max-width: 500px;
+  }
+  
+
+.card-header {
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.card-text {
+  font-size: 1.1em;
+  color: #333;
+}
+
+.btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+}
+.img-fluid {
+  max-width: 100%;
+  height: auto;
+  border-radius: 5px;
+}
+
