@@ -1,108 +1,114 @@
-{% extends 'base.html' %}
+{% extends 'managingUser.html' %}
 
-{% block title %}Profile{% endblock %}
-
-{% block content %}
-<div class="container mt-3">
-    <h1 class="text-center">{{ user[1] }}</h1>
-    <div class="text-center">
-        <img src="{{ url_for('static', filename='uploads/' ~ user[8]) }}" class="rounded-circle" alt="Profile Picture" style="width: 150px; height: 150px;">
-    </div>
-    <h3 class="text-center mt-3">Role: {{ user[7] | capitalize }}</h3>
-    <table class="table table-hover table-responsive table-dark table-striped mt-3">
-                <thead>
-                  <tr>
-                    <th class="text-center"><strong>Username:</strong></th>
-                    <th class="text-center"><strong>Firstname:</strong></th>
-                    <th class="text-center"><strong>Family Name:</strong></th>
-                    <th class="text-center"><strong>Email:</strong></th>
-                    <th class="text-center"><strong>Date of Birth:</strong></th>
-                    <th class="text-center"><strong>Location:</strong></th>
-                    <th class="text-center"><strong>Role:</strong></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td class="text-center">{{ profile[0] }}</td>
-                    <td class="text-center">{{ profile[1] }}</td>
-                    <td class="text-center">{{ profile[2] }}</td>
-                    <td class="text-center">{{ profile[3] }}</td>
-                    <td class="text-center">{{ profile[4] }}</td>
-                    <td class="text-center">{{ profile[5] }}</td>
-                    <td class="text-center">{{ profile[6] }}</td>
-                    <td class="text-center">{{ profile[7] }}</td>
-                   
-                  </tr>
-                </tbody>
-            </table>
-            <div class="text-center mt-4">
-                <a href="{{ url_for('edit_profile') }}" class="btn btn-success">Edit Profile</a>
-            </div>
-            <div class="text-center mt-4">
-              <a href="{{ url_for('delete_profile') }}" class="btn btn-success">Delete Account</a>
-          </div>
-          <div class="text-center mt-4">
-            <a href="{{ url_for('change the password') }}" class="btn btn-success">Change the password</a>
-            <div class="text-center mt-4">
-              <a href="{{ url_for('change profile picture') }}" class="btn btn-success">Change the profile picture</a>
-          </div>
-        </div>
-        </div>
-        <div class="container mt-5">
-            <h2>Messages</h2>
-            <div class="message-form">
-                <form action="{{ url_for('post_message') }}" method="post">
-                    <div class="form-group">
-                        <textarea class="form-control" name="message" placeholder="What's on your mind?" required></textarea>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Post</button>
-                </form>
-            </div>
-            <div class="messages mt-3">
-                {% for message in messages %}
-                <div class="card mt-3">
-                    <div class="card-body">
-                        <p class="card-text">{{ message[2] }}</p>
-                        <div class="message-actions">
-                            <button class="btn btn-light">{{ message[4] }} Likes</button>
-                            <button class="btn btn-light">Comment</button>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        {% endblock %}
-
-
-
-
-       <!-- {% extends 'layout.html' %}
-
-{% block title %}Profile{% endblock %}
+{% block title %}moderator Page{% endblock %}
 
 {% block content %}
-<h2>Profile Page</h2>
-<div>
-    <p>Your account details are below:</p>
-    <table>
-        <tr>
-            <td>Username:</td>
-            <td>{{ account['username'] }}</td>
-        </tr>
-        <tr>
-            <td>Email:</td>
-            <td>{{ account['email'] }}</td>
-        </tr>
-        <tr>
-            <td>Role:</td>
-            <td>{{ account['role'] }}</td>
-        </tr>
-    </table>
+<div class="d-flex justify-content-center align-items-center">
+
+
+  <h1 class='text-center text-danger mb-3'>Manage My Profile</h1>
+
 </div>
-{% endblock %}-->
+
+<form action="{% if 'moderator' in session %}
+                  /moderator/profile/edit
+                {% elif 'admin' in session %}
+                  /admin/profile/edit
+                {% elif 'member' in session %}
+                  /member/profile/edit
+                {% endif %}" method="POST" class="bg-warning p-4 rounded">
+  <div class="mx-auto p-2  form-floating form-group ">
+    <input type="text" class="form-control" id="id" name="id"  value="{{role[0]}}" hidden readonly>
+    <label for="id" class="form-label" hidden >ID</label>
+  </div>
+  <div class="mx-auto p-2  form-floating form-group ">
+    <input type="text" class="form-control" id="fname" name="fname"  value="{{role[2]}}" readonly>
+    <label for="fname" class="form-label" >First Name</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="lname" name="lname"  value="{{role[3]}}" readonly>
+    <label for="lname" class="form-label" >Last Nanme</label>
+  </div>
+
+  
+
+  {% if "moderator" in session or "admin" in session%}
+    <div class="mx-auto p-2  form-floating form-group">
+      <input type="text" class="form-control" id="username" name="username"  value="{{role[1]}}" readonly>
+      <label for="username" class="form-label" >User Name</label>
+    </div>
+
+    <div class="mx-auto p-2  form-floating form-group">
+
+    <input type="text" class="form-control" id="email" name="email"  value="{{role[4]}}" required>
+    <label for="email" class="form-label" >Email</label>
+  </div>
+
+  {% else %}
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="username" name="username"  value="{{role[1]}}" readonly>
+    <label for="username" class="form-label" >User Name</label>
+  </div>
+  <div class="mx-auto p-2  form-floating form-group">
+  
+    <input type="text" class="form-control" id="email" name="email"  value="{{role[4]}}" required>
+    <label for="email" class="form-label" >Email</label>
+  </div>
+  {% endif %}
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="address" name="location"  value="{{role[7]}}" required>
+    <label for="address" class="form-label" >Location</label> 
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="date" name="date"  value="{{role[6]}}" readonly>
+    <label for="date" class="form-label" >Date of Birth</label>
+  </div>
+  
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="status" name="status"  value="{{role[10]}}" hidden readonly>
+
+  </div>
+  {% if "user" in session %}
+
+  <div class="col-md-6">
+   <a href="{{url_for('password')}}" class="btn btn-dark btn-lg me-2">Changing Password</a>
+  </div>
+  {% elif "moderator" in session %}
+  <div class="col-md-6">
+    <a href="{{url_for('moderator_password')}}" class="btn btn-dark btn-lg me-2">Changing Password</a>
+   </div>
+  {% elif "admin" in session %}
+  <div class="col-md-6">
+    <a href="{{url_for('admin_password')}}" class="btn btn-dark btn-lg me-2">Changing Password</a>
+   </div>
+   {% endif %}
+  
+
+    {% if password_reset %}
+     <div class="alert alert-success my-4"   role="alert">
+      <p>
+        {{msg}}
+      </p> 
+     </div>
+    {% endif %}
+
+
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+    </div>
+    <div class="col-md-6 text-end">
+      <button type="submit" class="btn btn-dark">Submit</button>
+    </div>
+  </div>
+
+
+</form>
 
 
 
 
-
+{% endblock %}

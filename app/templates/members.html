@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Members{% endblock %}
+{% block title %}Members list-search{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <h2 class="text-center text-danger">Search Members</h2>
+  <h2 class="text-center text-success mt-5 mb-4">Search Members</h2>
     <form action="{{ url_for('members') }}" method="post">
         <div class="form-group">
             <input type="text" class="form-control" id="search" name="search" placeholder="admin First Name or Family Name or a letter" required>

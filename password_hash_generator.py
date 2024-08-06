@@ -18,7 +18,7 @@ from flask_hashing import Hashing
 
 # IMPORTANT: Change 'ExampleSaltValue' to whatever salt value you'll use in
 # your application. If you don't do this, your password hashes won't work!
-PASSWORD_SALT = '1234abcd'
+PASSWORD_SALT = 'abcd'
 
 # We use a "named tuple" here to create a simple "User Account" class that can
 # store a username and password.

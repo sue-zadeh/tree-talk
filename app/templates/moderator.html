@@ -1,0 +1,88 @@
+{% extends 'managingUser.html' %}
+
+{% block title %}Moderator Page{% endblock %}
+
+{% block content %}
+
+
+<h1 class='text-center text-danger mb-3'>Edit User</h1>
+
+
+<form action="/admin/moderator/edit" method="POST" class="bg-warning  p-4 rounded">
+  <div class="mx-auto p-2  form-floating form-group ">
+    <input type="text" class="form-control" id="id" name="id"  value="{{moderator[0]}}" hidden readonly>
+    <label for="id" class="form-label" hidden>ID</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="username" name="username"  value="{{moderator[1]}}" readonly>
+    <label for="username" class="form-label" >User Name</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group ">
+    <input type="text" class="form-control" id="fname" name="fname"  value="{{moderator[2]}}" readonly>
+    <label for="fname" class="form-label" >First Name</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="lname" name="lname"  value="{{moderator[3]}}" readonly>
+    <label for="lname" class="form-label" >Last Nanme</label>
+  </div>
+
+  
+  <div class="mx-auto p-2  form-floating form-group">
+  
+    <input type="text" class="form-control" id="email" name="email"  value="{{moderator[4]}}" required>
+    <label for="email" class="form-label" >Email</label>
+  </div>
+  
+  
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="date" name="date"  value="{{moderator[6]}}" readonly>
+    <label for="date" class="form-label" >Date of Birth</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="address" name="address"  value="{{moderator[7]}}" required>
+    <label for="address" class="form-label" >Location</label> 
+  </div>
+
+  <!-- <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="position" name="position"  value="{{moderator[9]}}" >
+    <label for="position" class="form-label" >position</label>
+  </div> -->
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="department" name="department"  value="{{moderator[10]}}" >
+    <label for="department" class="form-label" >Department</label>
+  </div>
+  <div class="mx-auto p-2 form-floating form-group">
+    <select class="form-select my-auto" id="status" name="status" required>
+      {% if moderator[11] == 1  %}
+      <option value="{{ moderator[11] }}" selected >
+       Activated 
+      </option>
+      <option value="0" required>Deactivate the user</option>
+      {% elif moderator[11] == 0 %}
+      <option value="{{ moderator[11] }}" selected >
+        Deactivated
+       </option>
+      <option value="1" required>Activate the user</option>
+      {% endif %}
+    </select>
+    <label for="status" class="form-label">Active Status</label>
+  </div>
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+    </div>
+    <div class="col-md-6 text-end">
+      <button type="submit" class="btn btn-dark">Submit</button>
+    </div>
+  </div>
+
+</form>
+
+
+
+
+{% endblock %}

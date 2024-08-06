@@ -2,13 +2,13 @@
 {% block title %}Moderators{% endblock %}
 {% block content %}
 <div class="container mt-5">
-  <div class="btn-group">
+  <!--<div class="btn-group">
     <button class="button btn-success justify-center mt-1 mb-5">About</button>
     <button class="button btn-success justify-center mt-1 mb-5">Contact Us</button>
     <button class="button btn-success justify-center mt-1 mb-5">Reports</button>
     <button class="button btn-success justify-center mt-1 mb-5">Manage Users</button>
-  </div>
-    <h2 class="text-center text-danger">Search Moderators</h2>
+  </div>-->
+    <h2 class="text-center text-success mt-5 mb-4">Search Moderators</h2>
     <form action="{{ url_for('moderators') }}" method="post">
         <div class="form-group">
             <input type="text" class="form-control" id="search" name="search" placeholder="admin First Name or Family Name or a letter" required>

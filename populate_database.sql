@@ -70,7 +70,7 @@ INSERT INTO messages (user_id, title, content) VALUES
 (4, 'Landscaping Ideas', 'Discuss and share your landscaping ideas here.'),
 (5, 'Pest Control', 'Effective ways to manage pests in your garden.'),
 (6, 'Organic Gardening', 'Share your experiences with organic gardening.'),
-(7, 'Seasonal Planting Guide', 'What to plant this season? Let's discuss.'),
+(7, 'Seasonal Planting Guide', 'What to plant this season? Let\'s discuss.'),
 (8, 'Watering Schedules', 'Best practices for watering your plants.'),
 (9, 'Soil Management', 'How to maintain fertile soil.'),
 (10, 'Pruning Techniques', 'Best techniques for pruning.'),

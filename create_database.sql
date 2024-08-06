@@ -1,9 +1,6 @@
 -- -----------------------------------------------------
 -- Schema TreeTalk
 -- -----------------------------------------------------
-DROP SCHEMA IF EXISTS login;
-CREATE SCHEMA login;
-USE login;
 
 -- -----------------------------------------------------
 -- Table TreeTalk.users
@@ -27,6 +24,27 @@ CREATE TABLE users (
 );
 
 
+-- -----------------------------------------------------
+-- Table TreeTalk.moderator_admin
+-- -----------------------------------------------------
+
+
+CREATE TABLE IF NOT EXISTS `moderator_admin`
+(
+`staff_id` INT auto_increment PRIMARY KEY NOT NULL,
+`first_name` varchar(25),
+`last_name` varchar(25) not null,
+`email` varchar(320) not null,
+`username` varchar(100) NOT NULL,
+`password` varchar(255) NOT NULL,
+`address` varchar(320) not null,
+`work_phone_number` varchar(15) not null,
+`hire_date` date NOT NULL,
+`position` varchar(25) not null,
+`department` varchar(25) not null,
+`status` tinyint default 1
+);
+
 
 -- -----------------------------------------------------
 -- Table TreeTalk.messages
@@ -35,11 +53,12 @@ CREATE TABLE users (
 CREATE TABLE messages (
     message_id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
-    title VARCHAR(255) NOT NULL,
+    title VARCHAR(255) DEFAULT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
+
 
 -- -----------------------------------------------------
 -- Table TreeTalk.replies

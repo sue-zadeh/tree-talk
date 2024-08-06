@@ -1,16 +1,11 @@
 {% extends 'base.html' %}
 
+{% block title %}Community{% endblock %}
+
 {% block content %}
 <h2 class="text-center mt-5 mb-3">Community Center</h2>
-<h3 class='text-center text-danger mb-3'>Do you have tree-related issues?<br /> Write it here.</h3>
+<h4 class='text-center text-danger mb-3'>Do you have tree-related issues? Write it here.</h4>
 
-<!--{% if messages %}
-    <p>Messages found: {{ messages | length }}</p>
-{% else %}
-    <p>No messages found.</p>
-{% endif %}-->
-
-<!-- Form to submit new message -->
 <form action="{{ url_for('community') }}" method="POST" enctype="multipart/form-data">
     <div class="form-group">
         <textarea class="form-control" name="content" placeholder="Write your message here..." required></textarea>
@@ -23,39 +18,55 @@
 
 <hr>
 
-<!-- Display the list of messages -->
 {% for message in messages %}
 <div class="card mb-3">
     <div class="card-header">
-        <strong>{{ message[1] }}</strong> - {{ message[2].strftime('%Y-%m-%d %H:%M:%S') }}
+        <strong>{{ message.username }}</strong> - {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
     </div>
     <div class="card-body">
-        <p class="card-text">{{ message[2] }}</p>
-        
-        <!-- Display image if available -->
-        {% if message[3] %}
+        <p class="card-text">{{ message.content }}</p>
+        {% if message.filename %}
             <div class="text-center">
-              <img src="{{ url_for('static', filename='uploads/' ~ message.filename) }}" class="img-fluid" alt="Attached image">
+                <img src="{{ url_for('static', filename='uploads/' ~ message.filename) }}" class="img-fluid" alt="Attached image">
             </div>
         {% endif %}
-        
-        <!-- Buttons for liking, disliking, and replying to the message -->
         <div class="mt-3">
-          <form action="{{ url_for('like_message', message_id=message[1]) }}" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-success btn-sm">Like</button>
+            <form action="{{ url_for('like_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-success btn-sm">Like</button>
             </form>
-            <form action="{{ url_for('dislike_message', message_id=message[1]) }}" method="POST" style="display: inline;">
+            <form action="{{ url_for('dislike_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
                 <button type="submit" class="btn btn-warning btn-sm">Dislike</button>
             </form>
-            <form action="{{ url_for('delete_message', message_id=message[1]) }}" method="POST" style="display: inline;">
+            <form action="{{ url_for('delete_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
                 <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+            <form action="{{ url_for('edit_message', message_id=message.message_id) }}" method="GET" style="display: inline;">
+                <button type="submit" class="btn btn-primary btn-sm">Edit</button>
             </form>
         </div>
 
-        <!-- Form for replying to the message -->
-        <form action="{{ url_for('post_reply', message_id=message[1]) }}" method="POST" class="mt-3">
+        <hr>
+
+        <h5 class='text-success'>Comments:</h5>
+        {% for reply in message.replies %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <strong>{{ reply.username }}</strong> - {{ reply.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+            </div>
+            <div class="card-body">
+                <p class="card-text">{{ reply.content }}</p>
+                <form action="{{ url_for('delete_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+                <form action="{{ url_for('edit_reply', reply_id=reply.reply_id) }}" method="GET" style="display: inline;">
+                    <button type="submit" class="btn btn-primary btn-sm">Edit</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+        <form action="{{ url_for('post_reply', message_id=message.message_id) }}" method="POST">
             <div class="form-group">
-                <textarea class="form-control" name="content" placeholder="Put your comment here..." required></textarea>
+                <textarea class="form-control" name="content" placeholder="Write your comment here..." required></textarea>
             </div>
             <button type="submit" class="btn btn-primary btn-sm">Comment</button>
         </form>

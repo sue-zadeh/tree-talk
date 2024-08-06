@@ -1,0 +1,89 @@
+{% extends 'managingUser.html' %}
+
+{% block title %}Member Page{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-center align-items-center">
+
+  {% if 'staff' in session or 'admin' in session %}
+  <h1 class="text-center text-success">Edit User</h1>
+  {% elif 'user' in session %}
+  <h1 class="text-center text-success">Manage Profile</h1>
+  {% endif %}
+</div>
+
+<form action="{% if 'staff' in session %}
+                  /staff/members/edit
+                {% elif 'admin' in session %}
+                  /admin/members/edit
+                {% endif %}" method="POST" class="bg-warning p-4 rounded">
+                <div class="mx-auto p-2  form-floating form-group ">
+                  <input type="text" class="form-control" id="id" name="id"  value="{{member[0]}}" hidden readonly>
+                  <label for="id" class="form-label" hidden >ID</label>
+                </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="username" name="username"  value="{{member[1]}}" readonly>
+    <label for="username" class="form-label" >User Name</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group ">
+    <input type="text" class="form-control" id="fname" name="fname"  value="{{member[2]}}" readonly>
+    <label for="fname" class="form-label" >First Name</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="lname" name="lname"  value="{{member[3]}}" readonly>
+    <label for="lname" class="form-label" >Last Nanme</label>
+  </div>
+
+    <div class="mx-auto p-2  form-floating form-group">
+      <input type="text" class="form-control" id="email" name="email"  value="{{member[4]}}" required>
+    <label for="email" class="form-label" >Email</label>
+  </div>
+    
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="date" name="date"  value="{{member[6]}}" readonly>
+    <label for="date" class="form-label" >Date of Birth</label>
+  </div>
+
+  <div class="mx-auto p-2  form-floating form-group">
+    <input type="text" class="form-control" id="address" name="address"  value="{{member[7]}}" required>
+    <label for="address" class="form-label" >Location</label> 
+  </div>
+
+  {% if 'staff' in session or 'admin' in session %}
+  <div class="mx-auto p-2 form-floating form-group">
+    <select class="form-select my-auto" id="status" name="status" required>
+      {% if member[9] == 1  %}
+      <option value="{{ member[9] }}" selected >
+       Activated 
+      </option>
+      <option value="0" required>Inactivate the user</option>
+      {% elif member[9] == 0 %}
+      <option value="{{ member[9] }}" selected >
+        Inactivated
+       </option>
+      <option value="1" required>Activate the user</option>
+      {% endif %}
+    </select>
+    <label for="status" class="form-label">Active Status</label>
+  </div>
+  {% endif %}
+ 
+  <div class="row mt-4">
+    <div class="col-md-6">
+      <button type="button" class="btn btn-success btn-block mt-4" onclick="window.history.back()">Cancel</button>
+    </div>
+    <div class="col-md-6 text-end">
+      <button type="submit" class="btn btn-success btn-block mt-4">Submit</button>
+    </div>
+  </div>
+
+
+</form>
+
+
+
+
+{% endblock %}
