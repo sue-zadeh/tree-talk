@@ -7,7 +7,7 @@ from flask_hashing import Hashing
 from mysql.connector import connect, Error
 from datetime import datetime
 from app import app
-import connect as connect
+import app.connect as connect
 
 
 app.secret_key = 'e2e62cdb171271f0b12e5043f9f84208eba1f05c8658704e'
@@ -170,14 +170,17 @@ def logout():
    #------- Profile view
    
 # Profile route
-@app.route('/profile')
+@app.route('/profile', methods=['GET'])
 def profile():
     if 'user_id' in session:
-        cursor, conn = getCursor(dictionary=True)
+        cursor, conn = getCursor()
         cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
         user = cursor.fetchone()
-        return render_template("profile.html", user=user)
-    return redirect(url_for('login'))
+        cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
+        messages = cursor.fetchall()
+        return render_template("profile.html", user=user, messages=messages)
+    return redirect(url_for('profile'))
+
 
 # Edit Profile view
 @app.route('/edit_profile', methods=['POST'])

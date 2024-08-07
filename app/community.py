@@ -7,7 +7,7 @@ from flask_hashing import Hashing
 from mysql.connector import connect, Error
 from datetime import datetime
 from app import app
-import connect as connect
+import app.connect as connect
 
 app.secret_key = 'e2e62cdb171271f0b12e5043f9f84208eba1f05c8658704e'
 PASSWORD_SALT = '1234abcd'
@@ -84,6 +84,9 @@ def render_login_or_register(registered, toLogin, msg, username):
 
 @app.route('/community', methods=['GET', 'POST'])
 def community():
+    if 'user_id' not in session:
+        flash('Please log in to view the community center.', 'info')
+        return redirect(url_for('login'))
     cursor, conn = getCursor(dictionary=True)
     if not cursor or not conn:
         flash('Database connection error', 'error')
@@ -179,7 +182,7 @@ def dislike_message(message_id):
 def post_reply(message_id):
     cursor, conn = getCursor(dictionary=True)
     if not cursor or not conn:
-        flash('Database connection error', 'error')
+        # flash('Database connection error', 'error')
         return redirect(url_for('community'))
 
     content = request.form['content']
@@ -250,4 +253,3 @@ def delete_reply(reply_id):
 
 if __name__ == '__main__':
     app.run(debug=True)
-    

@@ -67,12 +67,12 @@
                         <form action="{{ url_for('delete_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
-                        <button onclick="editReply({{ reply.reply_id }})" class="btn btn-primary btn-sm">Edit</button>
+                        <button onclick="editReply({{ reply.reply_id }}, '{{ reply.content | replace("'", "\\'") }}')" class="btn btn-primary btn-sm">Edit</button>
                         <form action="{{ url_for('like_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-success btn-sm">Like</button>
                         </form>
                         <form action="{{ url_for('dislike_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
-                            <button type="submit" class="btn btn-warning btn-sm">Dislike</button>
+                            <button type="submit" the "btn btn-warning btn-sm">Dislike</button>
                         </form>
                     </div>
                 </div>
@@ -90,31 +90,32 @@
 </div>
 
 <script>
-function editMessage(messageId) {
-    const content = prompt("Edit your message:");
-    if (content) {
-        fetch(`/edit_message/${messageId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({ 'content': content })
-        }).then(() => window.location.reload());
-    }
-}
-
-function editReply(replyId) {
-    const content = prompt("Edit your reply:");
-    if (content) {
-        fetch(`/edit_reply/${replyId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({ 'content': content })
-        }).then(() => window.location.reload());
-    }
-}
-</script>
+  function editMessage(messageId, currentContent) {
+      const content = prompt("Edit your message:", currentContent);
+      if (content) {
+          fetch(`/edit_message/${messageId}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({ 'content': content })
+          }).then(() => window.location.reload());
+      }
+  }
+  
+  function editReply(replyId, currentContent) {
+      const content = prompt("Edit your reply:", currentContent);
+      if (content) {
+          fetch(`/edit_reply/${replyId}`, {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/x-www-form-urlencoded',
+              },
+              body: new URLSearchParams({ 'content': content })
+          }).then(() => window.location.reload());
+      }
+  }
+  </script>
+  
 
 {% endblock %}
