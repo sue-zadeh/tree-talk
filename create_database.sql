@@ -86,6 +86,7 @@ CREATE TABLE IF NOT EXISTS likes (
     message_id INT NOT NULL,
     type ENUM('like', 'dislike') NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    count INT DEFAULT 0,
     FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (message_id) REFERENCES messages(message_id)
 );
