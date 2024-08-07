@@ -1,114 +1,62 @@
 {% extends 'managingUser.html' %}
 
-{% block title %}moderator Page{% endblock %}
+{% block title %}Profile Page{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-center align-items-center">
+<div class="container">
+  <h1 class="text-center text-danger mb-3">Manage My Profile</h1>
 
-
-  <h1 class='text-center text-danger mb-3'>Manage My Profile</h1>
-
-</div>
-
-<form action="{% if 'moderator' in session %}
-                  /moderator/profile/edit
-                {% elif 'admin' in session %}
-                  /admin/profile/edit
-                {% elif 'member' in session %}
-                  /member/profile/edit
-                {% endif %}" method="POST" class="bg-warning p-4 rounded">
-  <div class="mx-auto p-2  form-floating form-group ">
-    <input type="text" class="form-control" id="id" name="id"  value="{{role[0]}}" hidden readonly>
-    <label for="id" class="form-label" hidden >ID</label>
-  </div>
-  <div class="mx-auto p-2  form-floating form-group ">
-    <input type="text" class="form-control" id="fname" name="fname"  value="{{role[2]}}" readonly>
-    <label for="fname" class="form-label" >First Name</label>
-  </div>
-
-  <div class="mx-auto p-2  form-floating form-group">
-    <input type="text" class="form-control" id="lname" name="lname"  value="{{role[3]}}" readonly>
-    <label for="lname" class="form-label" >Last Nanme</label>
-  </div>
-
-  
-
-  {% if "moderator" in session or "admin" in session%}
-    <div class="mx-auto p-2  form-floating form-group">
-      <input type="text" class="form-control" id="username" name="username"  value="{{role[1]}}" readonly>
-      <label for="username" class="form-label" >User Name</label>
+  <form action="/edit_profile" method="POST" enctype="multipart/form-data" class="bg-warning p-4 rounded">
+    <div class="form-group">
+      <label for="username">Username</label>
+      <input type="text" class="form-control" id="username" name="username" value="{{ user['username'] }}" readonly>
     </div>
 
-    <div class="mx-auto p-2  form-floating form-group">
+    <div class="form-group">
+      <label for="fname">First Name</label>
+      <input type="text" class="form-control" id="fname" name="fname" value="{{ user['first_name'] }}" readonly>
+    </div>
 
-    <input type="text" class="form-control" id="email" name="email"  value="{{role[4]}}" required>
-    <label for="email" class="form-label" >Email</label>
-  </div>
+    <div class="form-group">
+      <label for="lname">Last Name</label>
+      <input type="text" class="form-control" id="lname" name="lname" value="{{ user['last_name'] }}" readonly>
+    </div>
 
-  {% else %}
-  <div class="mx-auto p-2  form-floating form-group">
-    <input type="text" class="form-control" id="username" name="username"  value="{{role[1]}}" readonly>
-    <label for="username" class="form-label" >User Name</label>
-  </div>
-  <div class="mx-auto p-2  form-floating form-group">
-  
-    <input type="text" class="form-control" id="email" name="email"  value="{{role[4]}}" required>
-    <label for="email" class="form-label" >Email</label>
-  </div>
-  {% endif %}
-  <div class="mx-auto p-2  form-floating form-group">
-    <input type="text" class="form-control" id="address" name="location"  value="{{role[7]}}" required>
-    <label for="address" class="form-label" >Location</label> 
-  </div>
+    <div class="form-group">
+      <label for="email">Email</label>
+      <input type="email" class="form-control" id="email" name="email" value="{{ user['email'] }}" required>
+    </div>
 
-  <div class="mx-auto p-2  form-floating form-group">
-    <input type="text" class="form-control" id="date" name="date"  value="{{role[6]}}" readonly>
-    <label for="date" class="form-label" >Date of Birth</label>
-  </div>
-  
+    <div class="form-group">
+      <label for="location">Location</label>
+      <input type="text" class="form-control" id="location" name="location" value="{{ user['location'] }}" required>
+    </div>
 
-  <div class="mx-auto p-2  form-floating form-group">
-    <input type="text" class="form-control" id="status" name="status"  value="{{role[10]}}" hidden readonly>
+    <div class="form-group">
+      <label for="birth_date">Date of Birth</label>
+      <input type="date" class="form-control" id="birth_date" name="birth_date" value="{{ user['birth_date'] }}" readonly>
+    </div>
 
-  </div>
-  {% if "user" in session %}
+    <div class="form-group">
+      <label for="profile_image">Profile Picture</label>
+      <input type="file" class="form-control" id="profile_image" name="profile_image">
+      <img src="{{ url_for('uploaded_file', filename=user['profile_image']) }}" alt="Profile Image" class="img-fluid mt-3" style="max-width: 150px;">
+    </div>
 
-  <div class="col-md-6">
-   <a href="{{url_for('password')}}" class="btn btn-dark btn-lg me-2">Changing Password</a>
-  </div>
-  {% elif "moderator" in session %}
-  <div class="col-md-6">
-    <a href="{{url_for('moderator_password')}}" class="btn btn-dark btn-lg me-2">Changing Password</a>
-   </div>
-  {% elif "admin" in session %}
-  <div class="col-md-6">
-    <a href="{{url_for('admin_password')}}" class="btn btn-dark btn-lg me-2">Changing Password</a>
-   </div>
-   {% endif %}
-  
-
-    {% if password_reset %}
-     <div class="alert alert-success my-4"   role="alert">
-      <p>
-        {{msg}}
-      </p> 
-     </div>
-    {% endif %}
-
+    <div class="row mt-4">
+      <div class="col-md-6">
+        <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
+      </div>
+      <div class="col-md-6 text-end">
+        <button type="submit" class="btn btn-dark">Save Changes</button>
+      </div>
+    </div>
+  </form>
 
   <div class="row mt-4">
-    <div class="col-md-6">
-      <button type="button" class="btn btn-secondary" onclick="window.history.back()">Cancel</button>
-    </div>
-    <div class="col-md-6 text-end">
-      <button type="submit" class="btn btn-dark">Submit</button>
+    <div class="col-md-12 text-center">
+      <a href="{{ url_for('change_password') }}" class="btn btn-dark">Change Password</a>
     </div>
   </div>
-
-
-</form>
-
-
-
-
+</div>
 {% endblock %}
