@@ -149,9 +149,8 @@ def edit_message(message_id):
 
 @app.route('/like_message/<int:message_id>', methods=['POST'])
 def like_message(message_id):
-    cursor, conn = getCursor()
-    user_id = session.get('user_id', 1)
-
+    cursor, conn = getCursor(dictionary=True)
+    user_id = 1
     cursor.execute("SELECT * FROM likes WHERE user_id = %s AND message_id = %s", (user_id, message_id))
     like = cursor.fetchone()
 
@@ -159,15 +158,13 @@ def like_message(message_id):
         cursor.execute("DELETE FROM likes WHERE like_id = %s", (like['like_id'],))
     else:
         cursor.execute("INSERT INTO likes (user_id, message_id, type) VALUES (%s, %s, %s)", (user_id, message_id, 'like'))
-
     conn.commit()
     return redirect(url_for('community'))
 
 @app.route('/dislike_message/<int:message_id>', methods=['POST'])
 def dislike_message(message_id):
-    cursor, conn = getCursor()
-    user_id = session.get('user_id', 1)
-
+    cursor, conn = getCursor(dictionary=True)
+    user_id = 1
     cursor.execute("SELECT * FROM likes WHERE user_id = %s AND message_id = %s", (user_id, message_id))
     like = cursor.fetchone()
 
@@ -175,7 +172,6 @@ def dislike_message(message_id):
         cursor.execute("DELETE FROM likes WHERE like_id = %s", (like['like_id'],))
     else:
         cursor.execute("INSERT INTO likes (user_id, message_id, type) VALUES (%s, %s, %s)", (user_id, message_id, 'dislike'))
-
     conn.commit()
     return redirect(url_for('community'))
 

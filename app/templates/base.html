@@ -38,9 +38,13 @@
                <li class="nav-item text-success ml-5">
                    <a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'register' else '' }}" href="{{ url_for('register') }}"><i class="fas fa-user-plus"></i> Register</a>
                </li>
+
+               {% if 'user_id' in session %}
     <li class="nav-item text-success ml-5">
         <a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'profile' else '' }}" href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Profile</a>
     </li>
+    {% endif %}
+
     <li class="nav-item text-success ml-5">
         <a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'logout' else '' }}" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </li>
