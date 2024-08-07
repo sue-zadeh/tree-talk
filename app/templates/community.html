@@ -5,56 +5,116 @@
 <h2 class="text-center mt-5 mb-3">Community Center</h2>
 <h3 class='text-center text-danger mb-3'>Do you have tree-related issues? Write it here.</h3>
 
-<!-- Form to submit new message -->
-<form action="{{ url_for('community') }}" method="POST" enctype="multipart/form-data">
-    <div class="form-group">
-        <textarea class="form-control" name="content" placeholder="Write your message here..." required></textarea>
-    </div>
-    <div class="form-group">
-        <input type="file" class="form-control-file" name="media">
-    </div>
-    <button type="submit" class="btn btn-success w-35">Send</button>
-</form>
-
-<hr>
-
-<!-- Display the list of messages -->
-{% for message in messages %}
-<div class="card mb-3">
-    <div class="card-header">
-        <strong>{{ message.username }}</strong> - {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
-    </div>
-    <div class="card-body">
-        <p class="card-text">{{ message.content }}</p>
-        
-        <!-- Display image if available -->
-        {% if message.filepath %}
-            <div class="text-center">
-              <img src="{{ url_for('static', filename='uploads/' ~ message.filepath) }}" class="img-fluid" alt="Attached image">
-            </div>
-        {% endif %}
-        
-        <!-- Buttons for liking, disliking, and replying to the message -->
-        <div class="mt-3">
-            <form action="{{ url_for('like_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-success btn-sm">Like</button>
-            </form>
-            <form action="{{ url_for('dislike_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-warning btn-sm">Dislike</button>
-            </form>
-            <form action="{{ url_for('delete_message', message_id=message.message_id) }}" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-            </form>
-        </div>
-
-        <!-- Form for replying to the message -->
-        <form action="{{ url_for('post_reply', message_id=message.message_id) }}" method="POST" class="mt-3">
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Form to submit new message -->
+        <form action="{{ url_for('community') }}" method="POST" enctype="multipart/form-data" class="mb-4">
             <div class="form-group">
-                <textarea class="form-control" name="content" placeholder="Put your comment here..." required></textarea>
+                <textarea class="form-control" name="content" placeholder="Write your message here..." required></textarea>
             </div>
-            <button type="submit" class="btn btn-primary btn-sm">Comment</button>
+            <div class="form-group">
+                <input type="file" class="form-control-file" name="media">
+            </div>
+            <button type="submit" class="btn btn-success fs-5 w-50 custom-send-button">Send</button>
         </form>
     </div>
 </div>
-{% endfor %}
+
+<hr>
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <!-- Display the list of messages -->
+        {% for message in messages %}
+        <div class="card mb-3">
+            <div class="card-header">
+                <strong>{{ message.username }}</strong> - {{ message.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+            </div>
+            <div class="card-body bg-light">
+                <p class="card-text">{{ message.content }}</p>
+                
+                <!-- Display image if available -->
+                {% if message.filepath %}
+                    <div class="text-center mb-3">
+                        <img src="{{ url_for('static', filename='uploads/' ~ message.filepath) }}" class="img-fluid" alt="Attached image">
+                    </div>
+                {% endif %}
+                
+                <!-- Buttons for liking, disliking, and replying to the message -->
+                <div class="d-flex justify-content-start mt-3">
+                    <form action="{{ url_for('like_message', message_id=message.message_id) }}" method="POST" class="mr-2">
+                        <button type="submit" class="btn btn-success btn-sm">Like</button>
+                    </form>
+                    <form action="{{ url_for('dislike_message', message_id=message.message_id) }}" method="POST" class="mr-2">
+                        <button type="submit" class="btn btn-warning btn-sm">Dislike</button>
+                    </form>
+                    <form action="{{ url_for('delete_message', message_id=message.message_id) }}" method="POST" class="mr-2">
+                        <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                    <button onclick="editMessage({{ message.message_id }})" class="btn btn-primary btn-sm">Edit</button>
+                </div>
+
+                <hr>
+
+                <h5 class='text-success'>Comments:</h5>
+                {% for reply in message.replies %}
+                <div class="card mb-3 bg-secondary text-white">
+                    <div class="card-header">
+                        <strong>{{ reply.username }}</strong> - {{ reply.created_at.strftime('%Y-%m-%d %H:%M:%S') }}
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">{{ reply.content }}</p>
+                        <form action="{{ url_for('delete_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                        </form>
+                        <button onclick="editReply({{ reply.reply_id }})" class="btn btn-primary btn-sm">Edit</button>
+                        <form action="{{ url_for('like_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-success btn-sm">Like</button>
+                        </form>
+                        <form action="{{ url_for('dislike_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-warning btn-sm">Dislike</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+                <form action="{{ url_for('post_reply', message_id=message.message_id) }}" method="POST">
+                    <div class="form-group">
+                        <textarea class="form-control bg-secondary text-white" name="content" placeholder="Write your comment here..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-sm">Comment</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<script>
+function editMessage(messageId) {
+    const content = prompt("Edit your message:");
+    if (content) {
+        fetch(`/edit_message/${messageId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ 'content': content })
+        }).then(() => window.location.reload());
+    }
+}
+
+function editReply(replyId) {
+    const content = prompt("Edit your reply:");
+    if (content) {
+        fetch(`/edit_reply/${replyId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ 'content': content })
+        }).then(() => window.location.reload());
+    }
+}
+</script>
+
 {% endblock %}

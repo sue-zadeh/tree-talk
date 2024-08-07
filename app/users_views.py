@@ -7,7 +7,7 @@ from flask_hashing import Hashing
 from mysql.connector import connect, Error
 from datetime import datetime
 from app import app
-import app.connect as connect
+import connect as connect
 
 app.secret_key = 'e2e62cdb171271f0b12e5043f9f84208eba1f05c8658704e'
 PASSWORD_SALT = '1234abcd'
@@ -40,6 +40,10 @@ def getCursor(dictionary=False, buffered=False):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+def uploaded_file(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+  
    #----members----#
 @app.route('/members', methods=['GET', 'POST'])
 def members():
@@ -110,7 +114,6 @@ def moderators():
     return render_template("moderators.html", results=results, moderators=moderators, message=message)
   
   #-------admins-----#
-
 @app.route('/admins', methods=['GET', 'POST'])
 def admins():
     cursor, conn = getCursor()
@@ -124,17 +127,17 @@ def admins():
 
     if search_query:
         cursor.execute("""
-            SELECT user_id, COALESCE(profile_image, '/static/assets/default.png') AS profile_image, first_name, last_name, role
+            SELECT user_id, COALESCE(profile_image, '/static/uploads/default.png') AS profile_image, username, first_name, last_name, role
             FROM users 
-            WHERE first_name LIKE %s OR last_name LIKE %s 
+            WHERE first_name LIKE %s OR last_name LIKE %s OR username LIKE %s
             ORDER BY first_name, last_name
-        """, ('%' + search_query + '%', '%' + search_query + '%'))
+        """, ('%' + search_query + '%', '%' + search_query + '%', '%' + search_query + '%'))
         results = cursor.fetchall()
         if not results:
             message = f"Sorry, there are no results for '{search_query}'."
 
     cursor.execute("""
-        SELECT user_id, COALESCE(profile_image, '/static/assets/default.png') AS profile_image, first_name, last_name
+        SELECT user_id, COALESCE(profile_image, '/static/uploads/default.png') AS profile_image, username, first_name, last_name
         FROM users
         WHERE role = 'admin'
         ORDER BY first_name, last_name

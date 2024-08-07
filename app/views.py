@@ -7,7 +7,8 @@ from flask_hashing import Hashing
 from mysql.connector import connect, Error
 from datetime import datetime
 from app import app
-import app.connect as connect
+import connect as connect
+
 
 app.secret_key = 'e2e62cdb171271f0b12e5043f9f84208eba1f05c8658704e'
 PASSWORD_SALT = '1234abcd'
@@ -44,14 +45,14 @@ def allowed_file(filename):
 
 # ------ members, moderators, admins
 def redirect_based_on_role(html_file):
-    if "member" in session:
-        return redirect(url_for("member"))
-    elif "moderator" in session:
-        return redirect(url_for("moderator"))
-    elif "admin" in session:
-        return redirect(url_for("admin"))
-    else:
-        return render_template(html_file)
+     if "member" in session:
+         return redirect(url_for("community"))
+     elif "moderator" in session:
+        return redirect(url_for("community"))
+     elif "admin" in session:
+        return redirect(url_for("community"))
+     else:
+         return render_template(html_file)
     
 def render_login_or_register(registered, toLogin, msg, username):
     if toLogin:
@@ -136,75 +137,45 @@ def register():
   
    #----- login------#
   
-@app.route("/login", methods=['POST', 'GET'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    toLogin = True
     if request.method == 'POST':
-        session.permanent = True
-        username = request.form.get('username')
-        password = request.form.get('password')
-        hashed = hashing.hash_value(password, PASSWORD_SALT)
-         
+        username = request.form['username']
+        password = request.form['password']
+
         cursor, conn = getCursor(dictionary=True)
-        if not cursor or not conn:
-            flash('Database connection error', 'error')
-            return redirect(url_for('login'))
-
-        cursor.execute("SELECT username, password FROM users WHERE username=%s AND password=%s AND status=1", (username, hashed))
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
-        cursor.execute("SELECT username, password FROM users WHERE username=%s AND password=%s AND status=0", (username, hashed))
-        inactive_user = cursor.fetchone()
 
-        cursor.execute("SELECT username, password, role FROM users WHERE username=%s AND password=%s AND role != 'admin' AND status=1", (username, hashed))
-        moderator = cursor.fetchone()
-        cursor.execute("SELECT username, password, role FROM users WHERE username=%s AND password=%s AND status=0", (username, hashed))
-        inactive_moderator = cursor.fetchone()
+        if user and hashing.check_value(user['password'], password, PASSWORD_SALT):
+            session['user_id'] = user['user_id']
+            session['username'] = user['username']
+            session['role'] = user['role']
+            flash(f'Welcome, {username}!', 'success')
+            return redirect(url_for('community'))
 
-        cursor.execute("SELECT username, password, role FROM users WHERE username=%s AND password=%s AND role='admin'", (username, hashed))
-        admin = cursor.fetchone()
+        flash('Invalid username or password.', 'danger')
+        return redirect(url_for('login'))
 
-        cursor.close()
-        conn.close()
-        
-        if user:
-            session["member"] = username
-            return redirect(url_for("community"))
-        elif moderator:
-            session["moderator"] = username
-            return redirect(url_for("community"))
-        elif admin:
-            session["admin"] = username
-            return redirect(url_for("community"))
-        elif inactive_user:
-            msg = 'User is not active. Please contact an admin to solve the issue - admin email: sara.hey@admin.com'
-            return render_template("login.html", msg=msg, toLogin=toLogin)
-        elif inactive_moderator:
-            msg = 'Moderator account is not active. Please contact an admin to solve the issue - admin email: john.murray123@admin.com'
-            return render_template("login.html", msg=msg, toLogin=toLogin)
-        else:
-            msg = 'Username or password not correct. Please try again.'
-            return render_template("login.html", msg=msg, toLogin=toLogin)
-    else:
-        return redirect_based_on_role('login.html')
-
+    return render_template("login.html")
 #----logout---#
 
+# Logout route
 @app.route('/logout')
 def logout():
-    session.pop("user", None)
-    session.pop("moderator", None)
-    session.pop("admin", None) 
+    session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
-
+  
    #------- Profile view
-@app.route('/profile', methods=['GET'])
+   
+# Profile route
+@app.route('/profile')
 def profile():
-    if 'user' in session:
-        cursor = getCursor(dictionary=True)
-        cursor.execute("SELECT * FROM users WHERE username = %s", (session['user'],))
+    if 'user_id' in session:
+        cursor, conn = getCursor(dictionary=True)
+        cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
         user = cursor.fetchone()
-        cursor.close()
         return render_template("profile.html", user=user)
     return redirect(url_for('login'))
 
@@ -262,5 +233,4 @@ def change_password():
 
 if __name__ == '__main__':
     app.run(debug=True)
-    
     

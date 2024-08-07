@@ -2,18 +2,12 @@
 {% block title %}Admins{% endblock %}
 {% block content %}
 <div class="container mt-5">
-    <div class="btn-group">
-      <!-- <button class="button btn-success justify-center mt-1 mb-5">Reports</button>
-        <button class="button btn-success justify-center mt-1 mb-5">Manage Records</button>
-        <button class="button btn-success justify-center mt-1 mb-5">Manage News</button>--> 
-    </div>
-    
     <h2 class="text-center text-success">Search all users</h2>
-    <h4 class="text-center text-danger my-5">Admins can search and change the role of any user</h4>
+    <h4 class="text-center text-danger my-5">Admins can search all users, and change the role of any user</h4>
 
     <form action="{{ url_for('admins') }}" method="post">
         <div class="form-group">
-            <input type="text" class="form-control" id="search" name="search" placeholder="First Name, Family Name, or a letter" required>
+            <input type="text" class="form-control" id="search" name="search" placeholder="Username, First Name, Family Name, or a letter" required>
             <button type="submit" class="btn btn-success btn-lg mt-3">Search</button>
         </div>
     </form>
@@ -24,16 +18,17 @@
         {% for user in results %}
         <div class="col-md-4 mt-3">
             <div class="card">
-                <img class="card-img-top" src="{{ user[1] }}" alt="Profile Image of {{ user[2] }} {{ user[3] }}">
+                <img class="card-img-top" src="{{ user[1] }}" alt="profile_image of {{ user[3] }} {{ user[4] }}">
                 <div class="card-body">
-                    <h5 class="card-title">{{ user[2] }} {{ user[3] }}</h5>
+                    <h5 class="card-title">{{ user[2] }}</h5>
+                    <p>{{ user[3] }} {{ user[4] }}</p>
                     <form action="{{ url_for('change_role', user_id=user[0]) }}" method="post">
                         <div class="form-group">
                             <label for="role">Role:</label>
                             <select name="role" id="role" class="form-control">
-                                <option value="user" {% if user[4] == 'user' %}selected{% endif %}>User</option>
-                                <option value="admin" {% if user[4] == 'admin' %}selected{% endif %}>Admin</option>
-                                <option value="moderator" {% if user[4] == 'moderator' %}selected{% endif %}>Moderator</option>
+                                <option value="user" {% if user[5] == 'user' %}selected{% endif %}>User</option>
+                                <option value="admin" {% if user[5] == 'admin' %}selected{% endif %}>Admin</option>
+                                <option value="moderator" {% if user[5] == 'moderator' %}selected{% endif %}>Moderator</option>
                             </select>
                         </div>
                         <button type="submit" class="btn btn-success mt-3">Change Role</button>
@@ -42,7 +37,6 @@
             </div>
         </div>
         {% endfor %}
-
     </div>
     {% elif message %}
     <h3 class="text-danger text-center">{{ message }}</h3>
@@ -53,9 +47,10 @@
         {% for admin in admins %}
         <div class="col-md-4 mt-3">
             <div class="card">
-                <img class="card-img-top" src="{{ admin[1] }}" alt="Profile Image of {{ admin[2] }} {{ admin[3] }}">
+                <img class="card-img-top" src="{{ admin[1] }}" alt="Profile Image of {{ admin[3] }} {{ admin[4] }}">
                 <div class="card-body">
-                    <h5 class="card-title">{{ admin[2] }} {{ admin[3] }}</h5>
+                    <h5 class="card-title">{{ admin[2] }}</h5>
+                    <p>{{ admin[3] }} {{ admin[4] }}</p>
                     <p>Role: Admin</p>
                 </div>
             </div>

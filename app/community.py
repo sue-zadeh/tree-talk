@@ -7,7 +7,7 @@ from flask_hashing import Hashing
 from mysql.connector import connect, Error
 from datetime import datetime
 from app import app
-import app.connect as connect
+import connect as connect
 
 app.secret_key = 'e2e62cdb171271f0b12e5043f9f84208eba1f05c8658704e'
 PASSWORD_SALT = '1234abcd'
@@ -85,38 +85,31 @@ def render_login_or_register(registered, toLogin, msg, username):
 @app.route('/community', methods=['GET', 'POST'])
 def community():
     cursor, conn = getCursor(dictionary=True)
-    
+    if not cursor or not conn:
+        flash('Database connection error', 'error')
+        return redirect(url_for('home'))
+
     if request.method == 'POST':
         content = request.form['content']
         file = request.files['media']
-        filename = None
-        
+        filepath = None
+
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            filepath = filename
 
         cursor.execute("""
-            INSERT INTO messages (user_id, title, content, created_at)
+            INSERT INTO messages (user_id, content, created_at, filepath)
             VALUES (%s, %s, %s, %s)
-        """, (session.get('user_id', 1), 'New Message', content, datetime.now()))
-        
-        message_id = cursor.lastrowid
-
-        if filename:
-            cursor.execute("""
-                INSERT INTO media (message_id, filename)
-                VALUES (%s, %s)
-            """, (message_id, filename))
-
+        """, (session.get('user_id'), content, datetime.now(), filepath))
         conn.commit()
-        flash('Message posted successfully!', 'success')
         return redirect(url_for('community'))
 
     cursor.execute("""
-        SELECT m.message_id, m.content, m.created_at, u.username, media.filename 
+        SELECT m.*, u.username
         FROM messages m
         JOIN users u ON m.user_id = u.user_id
-        LEFT JOIN media ON m.message_id = media.message_id
         ORDER BY m.created_at DESC
     """)
     messages = cursor.fetchall()
@@ -131,44 +124,27 @@ def community():
         """, (message['message_id'],))
         message['replies'] = cursor.fetchall()
 
-    cursor.close()
-    conn.close()
-
     return render_template("community.html", messages=messages)
-
-
-
-@app.route('/edit_message/<int:message_id>', methods=['GET', 'POST'])
-def edit_message(message_id):
-    cursor, conn = getCursor(dictionary=True)
-
-    if request.method == 'POST':
-        content = request.form['content']
-        cursor.execute("""
-            UPDATE messages SET content = %s WHERE message_id = %s
-        """, (content, message_id))
-        conn.commit()
-        flash('Message updated successfully!', 'success')
-        return redirect(url_for('community'))
-
-    cursor.execute("SELECT * FROM messages WHERE message_id = %s", (message_id,))
-    message = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    return render_template("edit_message.html", message=message)
 
 @app.route('/delete_message/<int:message_id>', methods=['POST'])
 def delete_message(message_id):
-    cursor, conn = getCursor()
-
+    cursor, conn = getCursor(dictionary=True)
     user_id = session.get('user_id', 1)
     cursor.execute("DELETE FROM replies WHERE message_id = %s", (message_id,))
     cursor.execute("DELETE FROM messages WHERE message_id = %s AND user_id = %s", (message_id, user_id))
-    
     conn.commit()
     flash('Message deleted successfully!', 'success')
+    return redirect(url_for('community'))
+
+@app.route('/edit_message/<int:message_id>', methods=['POST'])
+def edit_message(message_id):
+    cursor, conn = getCursor(dictionary=True)
+    content = request.form['content']
+    cursor.execute("""
+        UPDATE messages SET content = %s WHERE message_id = %s
+    """, (content, message_id))
+    conn.commit()
+    flash('Message updated successfully!', 'success')
     return redirect(url_for('community'))
 
 @app.route('/like_message/<int:message_id>', methods=['POST'])
@@ -211,7 +187,7 @@ def post_reply(message_id):
         return redirect(url_for('community'))
 
     content = request.form['content']
-    user_id = session.get('user_id', 1)  # Replace with actual user session handling
+    user_id = session.get('user_id', 1)
 
     cursor.execute("""
         INSERT INTO replies (message_id, user_id, content, created_at)
@@ -222,35 +198,60 @@ def post_reply(message_id):
     flash('Reply posted successfully!', 'success')
     return redirect(url_for('community'))
 
+@app.route('/like_reply/<int:reply_id>', methods=['POST'])
+def like_reply(reply_id):
+    cursor, conn = getCursor()
+    user_id = session.get('user_id', 1)
 
-@app.route('/edit_reply/<int:reply_id>', methods=['GET', 'POST'])
+    cursor.execute("SELECT * FROM likes WHERE user_id = %s AND reply_id = %s", (user_id, reply_id))
+    like = cursor.fetchone()
+
+    if like:
+        cursor.execute("DELETE FROM likes WHERE like_id = %s", (like['like_id'],))
+    else:
+        cursor.execute("INSERT INTO likes (user_id, reply_id, type) VALUES (%s, %s, %s)", (user_id, reply_id, 'like'))
+
+    conn.commit()
+    return redirect(url_for('community'))
+
+@app.route('/dislike_reply/<int:reply_id>', methods=['POST'])
+def dislike_reply(reply_id):
+    cursor, conn = getCursor()
+    user_id = session.get('user_id', 1)
+
+    cursor.execute("SELECT * FROM likes WHERE user_id = %s AND reply_id = %s", (user_id, reply_id))
+    like = cursor.fetchone()
+
+    if like:
+        cursor.execute("DELETE FROM likes WHERE like_id = %s", (like['like_id'],))
+    else:
+        cursor.execute("INSERT INTO likes (user_id, reply_id, type) VALUES (%s, %s, %s)", (user_id, reply_id, 'dislike'))
+
+    conn.commit()
+    return redirect(url_for('community'))
+
+
+@app.route('/edit_reply/<int:reply_id>', methods=['POST'])
 def edit_reply(reply_id):
     cursor, conn = getCursor(dictionary=True)
-
-    if request.method == 'POST':
-        content = request.form['content']
-        cursor.execute("""
-            UPDATE replies SET content = %s WHERE reply_id = %s
-        """, (content, reply_id))
-        conn.commit()
-        flash('Reply updated successfully!', 'success')
-        return redirect(url_for('community'))
-
-    cursor.execute("SELECT * FROM replies WHERE reply_id = %s", (reply_id,))
-    reply = cursor.fetchone()
-
-    cursor.close()
-    conn.close()
-
-    return render_template("edit_reply.html", reply=reply)
+    content = request.form['content']
+    cursor.execute("""
+        UPDATE replies SET content = %s WHERE reply_id = %s
+    """, (content, reply_id))
+    conn.commit()
+    flash('Reply updated successfully!', 'success')
+    return redirect(url_for('community'))
 
 @app.route('/delete_reply/<int:reply_id>', methods=['POST'])
 def delete_reply(reply_id):
     cursor, conn = getCursor()
-    
     user_id = session.get('user_id', 1)
     cursor.execute("DELETE FROM replies WHERE reply_id = %s AND user_id = %s", (reply_id, user_id))
-    
     conn.commit()
     flash('Reply deleted successfully!', 'success')
     return redirect(url_for('community'))
+  
+
+if __name__ == '__main__':
+    app.run(debug=True)
+    
