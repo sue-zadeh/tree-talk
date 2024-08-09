@@ -62,6 +62,8 @@ users = [UserAccount('user1', 'user1pass'),
          UserAccount('user20', 'user5pass'),
          UserAccount('user21', 'user4pass'),
          UserAccount('user22', 'user5pass'),
+         UserAccount('user225', '123Suezx.'),
+         
          
          UserAccount('moderator1', 'moderator1pass'),
          UserAccount('moderator2', 'moderator2pass'),
@@ -71,12 +73,14 @@ users = [UserAccount('user1', 'user1pass'),
          UserAccount('moderator6', 'moderator2pass'),
          UserAccount('moderator7', 'moderator1pass'),
          UserAccount('moderator8', 'moderator2pass'),
+         UserAccount('user400', '123Suezx.'),
 
          
          UserAccount('admin1', 'admin1pass'),
          UserAccount('admin2', 'admin1pass'),
          UserAccount('admin3', 'admin1pass'),
-         UserAccount('admin4', 'admin1pass')]
+         UserAccount('admin4', 'admin1pass'),
+         UserAccount('user901', '123Suezx.')] 
 
 
 

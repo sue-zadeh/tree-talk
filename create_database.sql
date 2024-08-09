@@ -1,6 +1,27 @@
 -- -----------------------------------------------------
 -- Schema TreeTalk
 -- -----------------------------------------------------
+-- -----------------------------------------------------
+-- Table TreeTalk.moderator_admin
+-- -----------------------------------------------------
+
+
+-- CREATE TABLE IF NOT EXISTS `moderator_admin`
+-- (
+-- `staff_id` INT auto_increment PRIMARY KEY NOT NULL,
+-- `first_name` varchar(25),
+-- `last_name` varchar(25) not null,
+-- `email` varchar(320) not null,
+-- `username` varchar(100) NOT NULL,
+-- `password` varchar(255) NOT NULL,
+-- `address` varchar(320) not null,
+-- `work_phone_number` varchar(15) not null,
+-- `hire_date` date NOT NULL,
+-- `position` varchar(25) not null,
+-- `department` varchar(25) not null,
+-- `status` tinyint default 1
+-- );
+
 
 -- -----------------------------------------------------
 -- Table TreeTalk.users
@@ -23,27 +44,6 @@ CREATE TABLE users (
     status ENUM('active', 'inactive') NOT NULL DEFAULT 'active'
 );
 
-
--- -----------------------------------------------------
--- Table TreeTalk.moderator_admin
--- -----------------------------------------------------
-
-
-CREATE TABLE IF NOT EXISTS `moderator_admin`
-(
-`staff_id` INT auto_increment PRIMARY KEY NOT NULL,
-`first_name` varchar(25),
-`last_name` varchar(25) not null,
-`email` varchar(320) not null,
-`username` varchar(100) NOT NULL,
-`password` varchar(255) NOT NULL,
-`address` varchar(320) not null,
-`work_phone_number` varchar(15) not null,
-`hire_date` date NOT NULL,
-`position` varchar(25) not null,
-`department` varchar(25) not null,
-`status` tinyint default 1
-);
 
 
 -- -----------------------------------------------------
