@@ -4,6 +4,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_hashing import Hashing
+import logging
 from mysql.connector import connect, Error
 from datetime import datetime
 from app import app
@@ -14,6 +15,8 @@ app.secret_key = 'e2e62cdb171271f0b12e5043f9f84208eba1f05c8658704e'
 PASSWORD_SALT = '1234abcd'
 
 hashing = Hashing(app)
+logging.basicConfig(level=logging.DEBUG)
+
 
 db_connection = None
 
@@ -41,6 +44,17 @@ def getCursor(dictionary=False, buffered=False):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
+
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'assets')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+def save_profile_photo(photo):
+    if photo and allowed_file(photo.filename):
+        filename = secure_filename(photo.filename)
+        photo_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        photo.save(photo_path)
+        return filename
+    return None  # Return None if no photo is uploaded or the file is invalid
 
 
 # ------ members, moderators, admins
@@ -76,7 +90,7 @@ def register():
         first_name = request.form['first_name']
         last_name = request.form['last_name']
         password = request.form['password']
-        confirm_password = request.form['confirm_password']  
+        confirm_password = request.form['confirm_password']
         email = request.form['email']
         birth_date = request.form['birth_date']
         location = request.form['location']
@@ -99,7 +113,7 @@ def register():
         except ValueError:
             flash('Invalid date format. Use YYYY-MM-DD', 'error')
             return redirect(url_for('register'))
-
+# Check if location contains only letters, spaces, and commas
         if not re.match(r'^[A-Za-z\s,]+$', location):
             flash('Location must contain only letters, spaces, and commas.', 'error')
             return redirect(url_for('register'))
@@ -108,12 +122,11 @@ def register():
             profile_image = 'default.png'
         elif file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             profile_image = filename
         else:
             flash('File not allowed', 'error')
             return redirect(url_for('register'))
-
+# Check if username already exists
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         account = cursor.fetchone()
 
@@ -133,7 +146,7 @@ def register():
         return redirect(url_for('login'))
 
     return render_template("register.html")
-  
+
   
    #----- login------#
   
@@ -146,7 +159,7 @@ def login():
         cursor, conn = getCursor(dictionary=True)
         cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
         user = cursor.fetchone()
-
+# Check if user exists and password is correct
         if user and hashing.check_value(user['password'], password, PASSWORD_SALT):
             session['user_id'] = user['user_id']
             session['username'] = user['username']
@@ -160,80 +173,135 @@ def login():
     return render_template("login.html")
 #----logout---#
 
-# Logout route
 @app.route('/logout')
 def logout():
     session.clear()
     flash('You have been logged out.', 'success')
     return redirect(url_for('login'))
   
-   #------- Profile view
-   
-# Profile route
+    #------------profile----------#
+  
 @app.route('/profile', methods=['GET'])
 def profile():
     if 'user_id' in session:
-        cursor, conn = getCursor()
-        cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
-        user = cursor.fetchone()
-        cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
-        messages = cursor.fetchall()
-        return render_template("profile.html", user=user, messages=messages)
-    return redirect(url_for('profile'))
+        cursor, conn = getCursor(dictionary=True)  
+        if cursor is None or conn is None:
+            return "Database connection error", 500
+        
+        try:
+            cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
+            user = cursor.fetchone()
+            
+            cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
+            messages = cursor.fetchall()
+        finally:
+            cursor.close()
+            if conn.is_connected():
+                conn.close()
 
+        if user:
+            return render_template("profile-user.html", user=user, messages=messages)
+        else:
+            return "User not found", 404
+    else:
+        return redirect(url_for('login'))
+      
+#---- Edit Profile view-----#
 
-# Edit Profile view
-@app.route('/edit_profile', methods=['POST'])
+@app.route('/edit_profile', methods=['GET', 'POST'])
 def edit_profile():
-    if 'user' in session:
-        cursor = getCursor(dictionary=True)
-        email = request.form['email']
-        location = request.form['location']
-        file = request.files['profile_image']
+    if 'user_id' not in session:
+        flash('You must be logged in to edit your profile.', 'error')
+        return redirect(url_for('login'))
 
-        profile_image = None
+    cursor, conn = getCursor(dictionary=True)
+
+    if request.method == 'POST':
+        email = request.form.get('email')
+        location = request.form.get('location')
+        birth_date = request.form.get('birth_date')
+        file = request.files.get('profile_image')
+        profile_image = session.get('profile_image', 'default.png')  # Default image if none is uploaded
+
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(file_path)
             profile_image = filename
 
+        # Update user information in the database
         cursor.execute("""
-            UPDATE users SET email = %s, location = %s, profile_image = %s WHERE username = %s
-        """, (email, location, profile_image, session['user']))
-        db_connection.commit()
-        cursor.close()
+            UPDATE users SET email = %s, location = %s, birth_date = %s, profile_image = %s WHERE user_id = %s
+        """, (email, location, birth_date, profile_image, session['user_id']))
+        conn.commit()
         flash('Profile updated successfully!', 'success')
-        return redirect(url_for('profile'))
-    return redirect(url_for('login'))
+        return redirect(url_for('profile'))  # Redirect to the profile page
+
+    # For GET request, load user information to populate form
+    cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
+    user = cursor.fetchone()
+    return render_template("edit_profile.html", user=user)  # Assuming you have an `edit_profile.html` for the form
+
+  
+  #----delete profile----#
+  
+@app.route('/delete_profile', methods=['POST'])
+def delete_profile():
+    if 'user_id' in session:
+        cursor, conn = getCursor()
+        # Delete the user from the database using their user_id from the session
+        cursor.execute("DELETE FROM users WHERE user_id = %s", (session['user_id'],))
+        conn.commit()
+        cursor.close()
+        conn.close()
+        session.clear()  # Clear the session after deleting the account
+        flash('Your account has been deleted successfully.', 'success')
+      # Redirect to the home page or login page
+        return redirect(url_for('home')) 
+    else:
+        flash('You must be logged in to delete your account.', 'danger')
+        return redirect(url_for('login'))
+
 
 # Change Password view
 @app.route('/change_password', methods=['GET', 'POST'])
 def change_password():
-    if 'user' in session:
+    app.logger.debug('Session: %s', session)
+    if 'username' in session:
         if request.method == 'POST':
-            old_password = request.form['old_password']
-            new_password = request.form['new_password']
-            confirm_password = request.form['confirm_password']
+            app.logger.debug('Form Data: %s', request.form)
+            old_password = request.form.get('old_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+        # Check if new password and confirm password match
+            if new_password != confirm_password:
+                flash('New passwords do not match.', 'error')
+                return redirect(url_for('password'))
 
-            if new_password == confirm_password:
-                cursor = getCursor(dictionary=True)
-                cursor.execute("SELECT password FROM users WHERE username = %s", (session['user'],))
-                user = cursor.fetchone()
-                
-                if hashing.check_value(user['password'], old_password, PASSWORD_SALT):
-                    hashed_password = hashing.hash_value(new_password, PASSWORD_SALT)
-                    cursor.execute("UPDATE users SET password = %s WHERE username = %s", (hashed_password, session['user']))
-                    db_connection.commit()
-                    flash('Password changed successfully!', 'success')
-                else:
-                    flash('Old password is incorrect', 'error')
-                
-                cursor.close()
+            cursor, conn = getCursor(dictionary=True)
+            if not cursor:
+                flash('Database connection error.', 'error')
+                return redirect(url_for('password'))
+        # Check if old password is correct
+            cursor.execute("SELECT password FROM users WHERE username = %s", (session['username'],))
+            user = cursor.fetchone()
+
+            if user and hashing.check_value(user['password'], old_password, PASSWORD_SALT):
+                hashed_password = hashing.hash_value(new_password, PASSWORD_SALT)
+                cursor.execute("UPDATE users SET password = %s WHERE username = %s", (hashed_password, session['username']))
+                conn.commit()
+                flash('Password changed successfully!', 'success')
             else:
-                flash('New passwords do not match', 'error')
-        return render_template('change_password.html')
+                flash('Old password is incorrect or user not found.', 'error')
+          # Close the cursor and connection
+            cursor.close()
+            return redirect(url_for('profile')) 
+          # Redirect to profile with a message
+        return render_template('password.html')
+    app.logger.debug('Redirecting to login because of missing session')
+
+    flash('You must be logged in to change your password.', 'error')
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
     app.run(debug=True)
-    

@@ -56,6 +56,7 @@ CREATE TABLE messages (
     title VARCHAR(255) DEFAULT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    file_path VARCHAR(255) DEFAULT NULL,
     FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 

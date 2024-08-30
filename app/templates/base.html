@@ -16,7 +16,7 @@
             background-color: rgba(100, 245, 80, 0.2); /* Slightly transparent background for navbar and sidebar */
         }
         .navbar a, .sidebar a {
-            color: #005500; /* Green text for better visibility on light background */
+            color: #005500; 
         }
     </style>
 </head>
@@ -36,11 +36,9 @@
                     <a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'community' else '' }}" href="{{ url_for('community') }}"><i class="fas fa-users"></i> Community Center</a>
                 </li>
                 
-                {% if 'user_id' in session %}
                 <li class="nav-item text-success ml-5">
                   <a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'profile' else '' }}" href="{{ url_for('profile') }}"><i class="fas fa-user-circle"></i> Profile</a>
                 </li>
-                {% endif %}
                 
                 <li class="nav-item text-success ml-5">
                     <a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'login' else '' }}" href="{{ url_for('login') }}"><i class="fas fa-user-plus"></i> Login</a>
@@ -51,10 +49,10 @@
     <li class="nav-item text-success ml-5">
         <a class="nav-link fs-5 text-success mr-5 {{ 'text-danger' if request.endpoint == 'logout' else '' }}" href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a>
     </li>
-
             </ul>
         </div>
     </nav>
+
     <div class="container-fluid full-height">
         <div class="row full-height">
             <nav id="sidebar" class="col-md-6 col-lg-2 d-md-block bg-light-green sidebar">

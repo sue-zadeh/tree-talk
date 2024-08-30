@@ -9,6 +9,7 @@ from datetime import datetime
 from app import app
 import app.connect as connect
 
+
 app.secret_key = 'e2e62cdb171271f0b12e5043f9f84208eba1f05c8658704e'
 PASSWORD_SALT = '1234abcd'
 

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Your Profile{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header">
+          <h4 class="card-title">Edit Profile</h4>
+        </div>
+        <div class="card-body">
+          <form action="{{ url_for('edit_profile') }}" method="post">
+            <!-- Email -->
+            <div class="mb-3">
+              <label for="email" class="form-label">Email:</label>
+              <input type="email" class="form-control" name="email" value="{{ user['email'] }}" required>
+            </div>
+
+            <!-- Location -->
+            <div class="mb-3">
+              <label for="location" class="form-label">Location:</label>
+              <input type="text" class="form-control" name="location" value="{{ user['location'] }}" required>
+            </div>
+
+            <!-- Birth Date -->
+            <div class="mb-3">
+              <label for="birth_date" class="form-label">Birth Date:</label>
+              <input type="date" class="form-control" name="birth_date" value="{{ user['birth_date'] }}" required>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid gap-2">
+              <button type="submit" class="btn btn-primary">Update Profile</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
