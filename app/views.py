@@ -249,15 +249,13 @@ def edit_profile():
 def delete_profile():
     if 'user_id' in session:
         cursor, conn = getCursor()
-        # Delete the user from the database using their user_id from the session
         cursor.execute("DELETE FROM users WHERE user_id = %s", (session['user_id'],))
         conn.commit()
         cursor.close()
         conn.close()
         session.clear()  # Clear the session after deleting the account
         flash('Your account has been deleted successfully.', 'success')
-      # Redirect to the home page or login page
-        return redirect(url_for('home')) 
+        return redirect(url_for('home'))  # Redirect to the home page or login page
     else:
         flash('You must be logged in to delete your account.', 'danger')
         return redirect(url_for('login'))
@@ -295,7 +293,7 @@ def change_password():
                 flash('Old password is incorrect or user not found.', 'error')
           # Close the cursor and connection
             cursor.close()
-            return redirect(url_for('profile')) 
+            return redirect(url_for('profile-user')) 
           # Redirect to profile with a message
         return render_template('password.html')
     app.logger.debug('Redirecting to login because of missing session')

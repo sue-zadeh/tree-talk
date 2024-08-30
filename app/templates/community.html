@@ -51,8 +51,8 @@
                     <form action="{{ url_for('delete_message', message_id=message.message_id) }}" method="POST" class="mr-2">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
-                    <button onclick="editMessage({{ message.message_id }})" id="editContent" name="content" class="btn btn-primary btn-sm">Edit</button>
-                </div>
+                    <button onclick="editMessage({{ message.message_id }}, '{{ message.content | replace("'", "\\'") }}')" id="editContent" name="content" class="btn btn-primary btn-sm">Edit</button>
+                  </div>
 
                 <hr>
 
@@ -91,17 +91,17 @@
 
 <script>
   function editMessage(messageId, currentContent) {
-      const content = prompt("Edit your message:", currentContent);
-      if (content) {
-          fetch(`/edit_message/${messageId}`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              body: new URLSearchParams({ 'content': content })
-          }).then(() => window.location.reload());
-      }
-  }
+    const content = prompt("Edit your message:", currentContent);
+    if (content) {
+        fetch(`/edit_message/${messageId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams({ 'content': content })
+        }).then(() => window.location.reload());
+    }
+}
   
   function editReply(replyId, currentContent) {
       const content = prompt("Edit your reply:", currentContent);
