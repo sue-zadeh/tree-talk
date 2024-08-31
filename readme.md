@@ -21,7 +21,7 @@
 
 --The logout option in the navbar allows users to log out, requiring them to log in again to use with the pages.
 
-
+----- thank you for your time
 ==========================================================================================
 
 
