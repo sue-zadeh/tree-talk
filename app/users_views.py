@@ -118,7 +118,7 @@ def moderators():
 
 @app.route('/admins', methods=['GET', 'POST'])
 def admins():
-    # Use dictionary=True to fetch data as dictionaries
+    # Using dictionary=True to fetch data as dictionaries
     cursor, conn = getCursor(dictionary=True) 
     if not cursor or not conn:
         flash('Database connection error', 'error')

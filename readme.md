@@ -23,6 +23,10 @@
 
 --The logout option in the navbar allows users to log out, requiring them to log in again to use with the pages.
 
+--During development, I found that using dictionary=True for the cursor when fetching data makes it easier to work with lists, especially when handling complex data like user profiles with images. This approach was used on the admin page, allowing profile pictures to display correctly. On the other hand, the members and moderators pages use buffered cursors without the dictionary option, which caused issues with displaying pictures. Since showing images wasn't a specific requirement for the assignment, and I was very tired, I decided to leave it as it is. All other functionalities on these pages are working well except for showing pictures.
+
+
+
 ----- thank you for your time
 
 ==========================================================================================
