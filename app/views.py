@@ -185,39 +185,44 @@ def logout():
     #------------profile----------#
 @app.route('/profile', methods=['GET'])
 def profile():
-    if 'user_id' in session:
-        cursor, conn = getCursor(dictionary=True)
-        if cursor is None or conn is None:
-            return "Database connection error", 500
-        
-        try:
-            # Fetch the user information
-            cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
-            user = cursor.fetchone()
-
-            # Fetch user messages
-            cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
-            messages = cursor.fetchall()
-
-            # Check if user data exists and handle date formatting
-            if user and 'birth_date' in user:
-                try:
-                    # Format birth_date if it's a datetime.date object
-                    user['birth_date'] = user['birth_date'].strftime('%d/%m/%Y')
-                except AttributeError:
-                    flash('Error formatting date. Date format is incorrect.', 'error')
-
-        finally:
-            cursor.close()
-            if conn.is_connected():
-                conn.close()
-
-        if user:
-            return render_template("profile-user.html", user=user, messages=messages)
-        else:
-            return "User not found", 404
-    else:
+    # Check if the user is logged in
+    if 'user_id' not in session:
+        flash('Please log in to view the profile page.', 'info')
         return redirect(url_for('login'))
+    
+    # Fetch user data after ensuring the user is logged in
+    cursor, conn = getCursor(dictionary=True)
+    if cursor is None or conn is None:
+        return "Database connection error", 500
+
+    try:
+        # Fetch the user information
+        cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
+        user = cursor.fetchone()
+
+        # Fetch user messages
+        cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
+        messages = cursor.fetchall()
+
+        # Check if user data exists and handle date formatting
+        if user and 'birth_date' in user:
+            try:
+                # Format birth_date if it's a datetime.date object
+                user['birth_date'] = user['birth_date'].strftime('%d/%m/%Y')
+            except AttributeError:
+                flash('Error formatting date. Date format is incorrect.', 'error')
+
+    finally:
+        cursor.close()
+        if conn.is_connected():
+            conn.close()
+
+    # Check if user data exists before rendering the profile page
+    if user:
+        return render_template("profile-user.html", user=user, messages=messages)
+    else:
+        return "User not found", 404
+
       
 #---- Edit Profile view-----#
 
@@ -283,33 +288,41 @@ def change_password():
             old_password = request.form.get('old_password')
             new_password = request.form.get('new_password')
             confirm_password = request.form.get('confirm_password')
-        # Check if new password and confirm password match
+            
+            # Check if new password and confirm password match
             if new_password != confirm_password:
                 flash('New passwords do not match.', 'error')
-                return redirect(url_for('password'))
-
+              # Redirect back to change password page
+                return redirect(url_for('change_password'))  
+            
             cursor, conn = getCursor(dictionary=True)
             if not cursor:
                 flash('Database connection error.', 'error')
-                return redirect(url_for('password'))
-        # Check if old password is correct
+              # Redirect back if database error happens
+                return redirect(url_for('change_password'))  
+            
+            # Check if old password is correct
             cursor.execute("SELECT password FROM users WHERE username = %s", (session['username'],))
             user = cursor.fetchone()
 
             if user and hashing.check_value(user['password'], old_password, PASSWORD_SALT):
+                # If the old password is correct, update the password
                 hashed_password = hashing.hash_value(new_password, PASSWORD_SALT)
                 cursor.execute("UPDATE users SET password = %s WHERE username = %s", (hashed_password, session['username']))
                 conn.commit()
                 flash('Password changed successfully!', 'success')
+                cursor.close()
+              # Redirect to profile after successful password change
+                return redirect(url_for('profile'))  
             else:
                 flash('Old password is incorrect or user not found.', 'error')
-          # Close the cursor and connection
-            cursor.close()
-            return redirect(url_for('profile-user')) 
-          # Redirect to profile with a message
+                cursor.close()
+              # Redirect back to change password page if old password is wrong
+                return redirect(url_for('change_password'))  
+        
         return render_template('password.html')
+    
     app.logger.debug('Redirecting to login because of missing session')
-
     flash('You must be logged in to change your password.', 'error')
     return redirect(url_for('login'))
 

@@ -1,3 +1,30 @@
+--In this project, I followed the assignment requirements:
+
+--After registering, users go to the login page. There's also a login form on the home page, along with a link to the register page for new users.
+
+
+--Without logging in, users cannot access the community center to send messages, reply, or view the profile page.
+
+--After logging in, users are directed to the community center page, where they can send messages and pictures, and comment on messages. Users can edit or delete their own messages but are not allowed to edit or delete others' messages or comments. Only their own edit and delete buttons are visible. (Unfortunately, the like and dislike buttons are not working; they were partially working, but after updating the likes table, some errors occurred that I hope to resolve later.)
+
+--Admins and moderators can edit and delete all messages and comments.
+
+--After logging in, users can access their profile pages, where they can edit their profiles, change their passwords, or delete their accounts.
+
+--In the sidebar, members can see other users' first names and last names and can search for other members by name, family, or a letter.
+
+--Moderators can view other moderators on their page and search by name, family, or a letter.
+
+--Admins can view all user information on their page, search users, and change their roles. I initially set the role-changing feature in the search results, as the assignment mentioned: "Admins can search all users, and change the role of any user." Now, I have also placed the role-changing buttons on the first page, so admins can change roles even without searching.
+
+--All dates are set in the NZ format, which was initially set up in the register form.
+
+--The logout option in the navbar allows users to log out, requiring them to log in again to use with the pages.
+
+
+==========================================================================================
+
+
 # Login Example
 
 This sample app demonstrates a simple login system that allows users to
