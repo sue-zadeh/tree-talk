@@ -239,7 +239,8 @@ def edit_profile():
         location = request.form.get('location')
         birth_date = request.form.get('birth_date')
         file = request.files.get('profile_image')
-        profile_image = session.get('profile_image', 'default.png')  # Default image if none is uploaded
+        # Default image if none is uploaded
+        profile_image = session.get('profile_image', 'default.png') 
 
         if file and allowed_file(file.filename):
            filename = secure_filename(file.filename)
@@ -252,12 +253,13 @@ def edit_profile():
         """, (email, location, birth_date, profile_image, session['user_id']))
         conn.commit()
         flash('Profile updated successfully!', 'success')
-        return redirect(url_for('profile'))  # Redirect to the profile page
+      # Redirect to the profile page
+        return redirect(url_for('profile')) 
 
     # For GET request, load user information to populate form
     cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
     user = cursor.fetchone()
-    return render_template("edit_profile.html", user=user)  # Assuming you have an `edit_profile.html` for the form
+    return render_template("edit_profile.html", user=user)  
 
   
   #----delete profile----#
@@ -272,7 +274,8 @@ def delete_profile():
         conn.close()
         session.clear()  # Clear the session after deleting the account
         flash('Your account has been deleted successfully.', 'success')
-        return redirect(url_for('home'))  # Redirect to the home page or login page
+      # Redirect to the home page or login page
+        return redirect(url_for('home'))  
     else:
         flash('You must be logged in to delete your account.', 'danger')
         return redirect(url_for('login'))

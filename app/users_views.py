@@ -116,9 +116,6 @@ def moderators():
   
   #-------admins-----#
 
-from datetime import datetime, date
-from flask import flash, redirect, url_for, render_template, request
-
 @app.route('/admins', methods=['GET', 'POST'])
 def admins():
     # Use dictionary=True to fetch data as dictionaries
