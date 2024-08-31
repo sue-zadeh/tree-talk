@@ -5,7 +5,7 @@ from werkzeug.utils import secure_filename
 import mysql.connector
 from flask_hashing import Hashing
 from mysql.connector import connect, Error
-from datetime import datetime
+from datetime import datetime, date
 from app import app
 import app.connect as connect
 
@@ -146,9 +146,9 @@ def admins():
 
         # Format date fields for each user in the results
         for user in results:
-                # Format to NZ date format
+            # Check if birth_date is a date object and format to NZ date format
             if 'birth_date' in user and isinstance(user['birth_date'], (datetime, date)):
-                user['birth_date'] = user['birth_date'].strftime('%d/%m/%Y') 
+                user['birth_date'] = user['birth_date'].strftime('%d/%m/%Y')
 
     except Exception as e:
         flash(f"Error fetching user data: {str(e)}", 'error')
@@ -160,6 +160,7 @@ def admins():
     return render_template("admins.html", results=results, message=message)
   
   #---- Change role view-----#
+  
 @app.route('/change_role/<int:user_id>', methods=['POST'])
 def change_role(user_id):
     new_role = request.form.get('role')

@@ -17,11 +17,14 @@
 
 --Admins can view all user information on their page, search users, and change their roles. I initially set the role-changing feature in the search results, as the assignment mentioned: "Admins can search all users, and change the role of any user." Now, I have also placed the role-changing buttons on the first page, so admins can change roles even without searching.
 
+--I used default.png for users who didn't upload a picture.
+
 --All dates are set in the NZ format, which was initially set up in the register form.
 
 --The logout option in the navbar allows users to log out, requiring them to log in again to use with the pages.
 
 ----- thank you for your time
+
 ==========================================================================================
 
 
