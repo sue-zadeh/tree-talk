@@ -17,6 +17,8 @@ PASSWORD_SALT = '1234abcd'
 hashing = Hashing(app)
 logging.basicConfig(level=logging.DEBUG)
 
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 db_connection = None
 
@@ -44,9 +46,6 @@ def getCursor(dictionary=False, buffered=False):
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
-
-UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'assets')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 def save_profile_photo(photo):
     if photo and allowed_file(photo.filename):
@@ -97,55 +96,63 @@ def register():
         file = request.files['profile_image']
         profile_image = None
 
-        # Check if password matches confirm password
+        # Validate password match
         if password != confirm_password:
             flash('Passwords do not match!', 'error')
-            return redirect(url_for('register'))
+            return render_template('register.html')
 
-        cursor, conn = getCursor()
-        if not cursor or not conn:
-            flash('Database connection error', 'error')
-            return redirect(url_for('register'))
-
+        # Validate birth date
         try:
             birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d')
             birth_date = birth_date_obj.strftime('%Y-%m-%d')
         except ValueError:
             flash('Invalid date format. Use YYYY-MM-DD', 'error')
-            return redirect(url_for('register'))
-# Check if location contains only letters, spaces, and commas
+            return render_template('register.html')
+
+        # Validate location
         if not re.match(r'^[A-Za-z\s,]+$', location):
             flash('Location must contain only letters, spaces, and commas.', 'error')
-            return redirect(url_for('register'))
+            return render_template('register.html')
 
-        if 'profile_image' not in request.files or file.filename == '':
-            profile_image = 'default.png'
-        elif file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            profile_image = filename
+        # Handle file upload
+        if file and allowed_file(file.filename):
+            filename = save_profile_photo(file)
+            if filename:
+                profile_image = filename
+            else:
+                flash('Error saving file.', 'error')
+                return render_template('register.html')
         else:
-            flash('File not allowed', 'error')
-            return redirect(url_for('register'))
-# Check if username already exists
-        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-        account = cursor.fetchone()
+            profile_image = 'default.png'  # Assuming a default image exists
 
-        if account:
-            flash('Username already exists!', 'error')
-            return redirect(url_for('register'))
+        # Check username uniqueness
+        cursor, conn = getCursor()
+        if cursor:
+            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+            if cursor.fetchone():
+                flash('Username already exists!', 'error')
+                return render_template('register.html')
 
-        password = hashing.hash_value(password, '1234abcd')
+            # Secure password
+            hashed_password = hashing.hash_value(password, salt=PASSWORD_SALT)
 
-        cursor.execute("""
-            INSERT INTO users (username, first_name, last_name, email, password, birth_date, location, profile_image)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        """, (username, first_name, last_name, email, password, birth_date, location, profile_image))
-        conn.commit()
+            # Insert into database
+            try:
+                cursor.execute("""
+                    INSERT INTO users (username, first_name, last_name, email, password, birth_date, location, profile_image)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                """, (username, first_name, last_name, email, hashed_password, birth_date, location, profile_image))
+                conn.commit()
+            except mysql.connector.Error as e:
+                flash(f'Database error: {e}', 'error')
+                return render_template('register.html')
 
-        flash('Registration successful. Please login now.', 'success')
-        return redirect(url_for('login'))
+            flash('Registration successful. Please login now.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Database connection error', 'error')
 
-    return render_template("register.html")
+    return render_template('register.html')
 
   
    #----- login------#
@@ -224,10 +231,9 @@ def edit_profile():
         profile_image = session.get('profile_image', 'default.png')  # Default image if none is uploaded
 
         if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(file_path)
-            profile_image = filename
+           filename = secure_filename(file.filename)
+           file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
 
         # Update user information in the database
         cursor.execute("""

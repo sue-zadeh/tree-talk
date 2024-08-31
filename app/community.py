@@ -14,6 +14,10 @@ PASSWORD_SALT = '1234abcd'
 
 hashing = Hashing(app)
 
+UPLOAD_FOLDER = os.path.join(app.root_path, 'static', 'uploads')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+
 db_connection = None
 
 def getCursor(dictionary=False, buffered=False):
@@ -50,10 +54,6 @@ def getCursor(dictionary=False, buffered=False):
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
-def uploaded_file(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
-
    #--- role of user
 def redirect_based_on_role(html_file):
     if "user" in session:
@@ -87,14 +87,15 @@ def community():
     if 'user_id' not in session:
         flash('Please log in to view the community center.', 'info')
         return redirect(url_for('login'))
+
     cursor, conn = getCursor(dictionary=True)
     if not cursor or not conn:
         flash('Database connection error', 'error')
         return redirect(url_for('home'))
 
     if request.method == 'POST':
-        content = request.form['content']
-        file = request.files['media']
+        content = request.form.get('content')
+        file = request.files.get('media')
         filepath = None
 
         if file and allowed_file(file.filename):
@@ -107,8 +108,8 @@ def community():
             VALUES (%s, %s, %s, %s)
         """, (session.get('user_id'), content, datetime.now(), filepath))
         conn.commit()
-        return redirect(url_for('community'))
 
+    # Fetch messages along with replies
     cursor.execute("""
         SELECT m.*, u.username
         FROM messages m
@@ -119,7 +120,7 @@ def community():
 
     for message in messages:
         cursor.execute("""
-            SELECT r.reply_id, r.content, r.created_at, u.username 
+            SELECT r.*, u.username 
             FROM replies r
             JOIN users u ON r.user_id = u.user_id
             WHERE r.message_id = %s
@@ -127,7 +128,10 @@ def community():
         """, (message['message_id'],))
         message['replies'] = cursor.fetchall()
 
+    cursor.close()
+    conn.close()
     return render_template("community.html", messages=messages)
+
 
 @app.route('/delete_message/<int:message_id>', methods=['POST'])
 def delete_message(message_id):
