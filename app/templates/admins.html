@@ -5,7 +5,7 @@
     <h2 class="text-center mt-5">Admin Panel</h2>
     <h3 class="text-center text-danger my-4">Admins can search all users, and change the role of any user</h3>
 
-    <!-- Flash Messages Section with Custom Background and Text Colors -->
+    <!-- Flash Messages Section  -->
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="alert-container">
@@ -30,7 +30,7 @@
         </div>
     </form>
 
-    <!-- Display a personalized no results message -->
+    <!-- Display no results message -->
     {% if not results and request.form.get('search') %}
         <p class="text-center" style="background-color: #f8d7da; padding: 10px; border-radius: 5px; color: #721c24;">
             Sorry, there was no result for '{{ request.form.get('search') }}'.
@@ -46,7 +46,8 @@
         <div class="row">
             {% for user in results %}
             <div class="col-md-6 col-lg-4 mb-4">
-                <div class="card">
+                <div class="card">            <!--using dictionary-->
+                    <img src="{{ url_for('static', filename='uploads/' ~ user['profile_image']) }}" class="card-img-top img-fluid" alt="Profile Picture" style="height: 150px; object-fit: cover;">
                     <div class="card-body">
                         <h5 class="card-title">{{ user['username'] }}</h5>
                         <p class="card-text"><strong>Name:</strong> {{ user['first_name'] }} {{ user['last_name'] }}</p>
