@@ -33,14 +33,12 @@
             <div class="card-body bg-light">
                 <p class="card-text">{{ message.content }}</p>
                 
-                <!-- Display image if available -->
                 {% if message.filepath %}
                     <div class="text-center mb-3">
                         <img src="{{ url_for('static', filename='uploads/' ~ message.filepath) }}" class="img-fluid" alt="Attached image">
                     </div>
                 {% endif %}
                 
-                <!-- Buttons for liking, disliking, and replying to the message -->
                 <div class="d-flex justify-content-start mt-3">
                     <form action="{{ url_for('like_message', message_id=message.message_id) }}" method="POST" class="mr-2">
                         <button type="submit" class="btn btn-success btn-sm">Like</button>
@@ -48,11 +46,13 @@
                     <form action="{{ url_for('dislike_message', message_id=message.message_id) }}" method="POST" class="mr-2">
                         <button type="submit" class="btn btn-warning btn-sm">Dislike</button>
                     </form>
+                    {% if message.can_edit %}
                     <form action="{{ url_for('delete_message', message_id=message.message_id) }}" method="POST" class="mr-2">
                         <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                     </form>
-                    <button onclick="editMessage({{ message.message_id }}, '{{ message.content | replace("'", "\\'") }}')" id="editContent" name="content" class="btn btn-primary btn-sm">Edit</button>
-                  </div>
+                    <button onclick="editMessage({{ message.message_id }}, '{{ message.content | replace("'", "\\'") }}', {{ message.can_edit | tojson }})" class="btn btn-primary btn-sm">Edit</button>
+                    {% endif %}
+                </div>
 
                 <hr>
 
@@ -64,15 +64,17 @@
                     </div>
                     <div class="card-body">
                         <p class="card-text">{{ reply.content }}</p>
+                        {% if reply.can_edit %}
                         <form action="{{ url_for('delete_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
-                        <button onclick="editReply({{ reply.reply_id }}, '{{ reply.content | replace("'", "\\'") }}')" class="btn btn-primary btn-sm">Edit</button>
+                        <button onclick="editReply({{ reply.reply_id }}, '{{ reply.content | replace("'", "\\'") }}', {{ reply.can_edit | tojson }})" class="btn btn-primary btn-sm">Edit</button>
+                        {% endif %}
                         <form action="{{ url_for('like_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
                             <button type="submit" class="btn btn-success btn-sm">Like</button>
                         </form>
                         <form action="{{ url_for('dislike_reply', reply_id=reply.reply_id) }}" method="POST" style="display: inline;">
-                            <button type="submit" the "btn btn-warning btn-sm">Dislike</button>
+                            <button type="submit" class="btn btn-warning btn-sm">Dislike</button>
                         </form>
                     </div>
                 </div>
@@ -90,32 +92,62 @@
 </div>
 
 <script>
-  function editMessage(messageId, currentContent) {
+  function editMessage(messageId, currentContent, canEdit) {
+    if (!canEdit) {
+      alert('Sorry, you are not allowed to edit this message.');
+      return;
+    }
     const content = prompt("Edit your message:", currentContent);
     if (content) {
-        fetch(`/edit_message/${messageId}`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: new URLSearchParams({ 'content': content })
-        }).then(() => window.location.reload());
+      fetch(`/edit_message/${messageId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ content: content }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to edit the message. You may not have permission.');
+          }
+        })
+        .catch((error) => {
+          console.error('Error editing message:', error);
+          alert('An error occurred while editing the message.');
+        });
     }
-}
-  
-  function editReply(replyId, currentContent) {
-      const content = prompt("Edit your reply:", currentContent);
-      if (content) {
-          fetch(`/edit_reply/${replyId}`, {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/x-www-form-urlencoded',
-              },
-              body: new URLSearchParams({ 'content': content })
-          }).then(() => window.location.reload());
-      }
   }
-  </script>
-  
+
+  function editReply(replyId, currentContent, canEdit) {
+    if (!canEdit) {
+      alert('Sorry, you are not allowed to edit this reply.');
+      return;
+    }
+    const content = prompt("Edit your reply:", currentContent);
+    if (content) {
+      fetch(`/edit_reply/${replyId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: new URLSearchParams({ content: content }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            window.location.reload();
+          } else {
+            alert('Failed to edit the reply. You may not have permission.');
+          }
+        })
+        .catch((error) => {
+          console.error('Error editing reply:', error);
+          alert('An error occurred while editing the reply.');
+        });
+    }
+  }
+</script>
+
 
 {% endblock %}

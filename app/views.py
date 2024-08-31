@@ -96,63 +96,59 @@ def register():
         file = request.files['profile_image']
         profile_image = None
 
-        # Validate password match
+        # Check if passwords match
         if password != confirm_password:
             flash('Passwords do not match!', 'error')
-            return render_template('register.html')
+            return redirect(url_for('register'))
 
-        # Validate birth date
+        cursor, conn = getCursor()
+        if not cursor or not conn:
+            flash('Database connection error', 'error')
+            return redirect(url_for('register'))
+
         try:
             birth_date_obj = datetime.strptime(birth_date, '%Y-%m-%d')
             birth_date = birth_date_obj.strftime('%Y-%m-%d')
         except ValueError:
             flash('Invalid date format. Use YYYY-MM-DD', 'error')
-            return render_template('register.html')
+            return redirect(url_for('register'))
 
-        # Validate location
+        # Check if location contains only letters, spaces, and commas
         if not re.match(r'^[A-Za-z\s,]+$', location):
             flash('Location must contain only letters, spaces, and commas.', 'error')
-            return render_template('register.html')
+            return redirect(url_for('register'))
 
-        # Handle file upload
+        # Save the file if it exists and is allowed
         if file and allowed_file(file.filename):
-            filename = save_profile_photo(file)
-            if filename:
-                profile_image = filename
-            else:
-                flash('Error saving file.', 'error')
-                return render_template('register.html')
+            filename = secure_filename(file.filename)
+            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            profile_image = filename  # Save the filename to profile_image
         else:
-            profile_image = 'default.png'  # Assuming a default image exists
+            flash('File not allowed', 'error')
+            return redirect(url_for('register'))
 
-        # Check username uniqueness
-        cursor, conn = getCursor()
-        if cursor:
-            cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
-            if cursor.fetchone():
-                flash('Username already exists!', 'error')
-                return render_template('register.html')
+        # Check if username already exists
+        cursor.execute("SELECT * FROM users WHERE username = %s", (username,))
+        account = cursor.fetchone()
 
-            # Secure password
-            hashed_password = hashing.hash_value(password, salt=PASSWORD_SALT)
+        if account:
+            flash('Username already exists!', 'error')
+            return redirect(url_for('register'))
 
-            # Insert into database
-            try:
-                cursor.execute("""
-                    INSERT INTO users (username, first_name, last_name, email, password, birth_date, location, profile_image)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-                """, (username, first_name, last_name, email, hashed_password, birth_date, location, profile_image))
-                conn.commit()
-            except mysql.connector.Error as e:
-                flash(f'Database error: {e}', 'error')
-                return render_template('register.html')
+        # Hash the password
+        password = hashing.hash_value(password, '1234abcd')
 
-            flash('Registration successful. Please login now.', 'success')
-            return redirect(url_for('login'))
-        else:
-            flash('Database connection error', 'error')
+        # Insert the new user into the database
+        cursor.execute("""
+            INSERT INTO users (username, first_name, last_name, email, password, birth_date, location, profile_image)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+        """, (username, first_name, last_name, email, password, birth_date, location, profile_image))
+        conn.commit()
 
-    return render_template('register.html')
+        flash('Registration successful. Please login now.', 'success')
+        return redirect(url_for('login'))
+
+    return render_template("register.html")
 
   
    #----- login------#
@@ -187,20 +183,30 @@ def logout():
     return redirect(url_for('login'))
   
     #------------profile----------#
-  
 @app.route('/profile', methods=['GET'])
 def profile():
     if 'user_id' in session:
-        cursor, conn = getCursor(dictionary=True)  
+        cursor, conn = getCursor(dictionary=True)
         if cursor is None or conn is None:
             return "Database connection error", 500
         
         try:
+            # Fetch the user information
             cursor.execute("SELECT * FROM users WHERE user_id = %s", (session['user_id'],))
             user = cursor.fetchone()
-            
+
+            # Fetch user messages
             cursor.execute("SELECT * FROM messages WHERE user_id = %s ORDER BY created_at DESC", (session['user_id'],))
             messages = cursor.fetchall()
+
+            # Check if user data exists and handle date formatting
+            if user and 'birth_date' in user:
+                try:
+                    # Format birth_date if it's a datetime.date object
+                    user['birth_date'] = user['birth_date'].strftime('%d/%m/%Y')
+                except AttributeError:
+                    flash('Error formatting date. Date format is incorrect.', 'error')
+
         finally:
             cursor.close()
             if conn.is_connected():

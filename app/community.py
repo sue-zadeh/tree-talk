@@ -109,23 +109,32 @@ def community():
         """, (session.get('user_id'), content, datetime.now(), filepath))
         conn.commit()
 
-    # Fetch messages along with replies
+    # Fetch messages along with permission checks for editing
     cursor.execute("""
-        SELECT m.*, u.username
+        SELECT m.*, u.username,
+               CASE
+                   WHEN m.user_id = %s OR %s IN ('admin', 'moderator') THEN TRUE
+                   ELSE FALSE
+               END AS can_edit
         FROM messages m
         JOIN users u ON m.user_id = u.user_id
         ORDER BY m.created_at DESC
-    """)
+    """, (session.get('user_id'), session.get('role')))
     messages = cursor.fetchall()
 
     for message in messages:
+        # Fetch replies with permission checks for editing
         cursor.execute("""
-            SELECT r.*, u.username 
+            SELECT r.*, u.username,
+                   CASE
+                       WHEN r.user_id = %s OR %s IN ('admin', 'moderator') THEN TRUE
+                       ELSE FALSE
+                   END AS can_edit
             FROM replies r
             JOIN users u ON r.user_id = u.user_id
             WHERE r.message_id = %s
             ORDER BY r.created_at ASC
-        """, (message['message_id'],))
+        """, (session.get('user_id'), session.get('role'), message['message_id']))
         message['replies'] = cursor.fetchall()
 
     cursor.close()
@@ -136,24 +145,55 @@ def community():
 @app.route('/delete_message/<int:message_id>', methods=['POST'])
 def delete_message(message_id):
     cursor, conn = getCursor(dictionary=True)
-    user_id = session.get('user_id', 1)
-    cursor.execute("DELETE FROM replies WHERE message_id = %s", (message_id,))
-    cursor.execute("DELETE FROM messages WHERE message_id = %s AND user_id = %s", (message_id, user_id))
-    conn.commit()
-    flash('Message deleted successfully!', 'success')
+    if not cursor or not conn:
+        flash('Database connection error', 'error')
+        return redirect(url_for('community'))
+
+    user_id = session.get('user_id')
+    cursor.execute("SELECT user_id FROM messages WHERE message_id = %s", (message_id,))
+    message = cursor.fetchone()
+
+    # Check if the user is the owner or has the correct role
+    if message and (message['user_id'] == user_id or 'admin' in session or 'moderator' in session):
+        cursor.execute("DELETE FROM replies WHERE message_id = %s", (message_id,))
+        cursor.execute("DELETE FROM messages WHERE message_id = %s", (message_id,))
+        conn.commit()
+        flash('Message deleted successfully!', 'success')
+    else:
+        flash('You do not have permission to delete this message.', 'error')
+
     return redirect(url_for('community'))
 
+   #----edit message----#
 @app.route('/edit_message/<int:message_id>', methods=['POST'])
 def edit_message(message_id):
     cursor, conn = getCursor(dictionary=True)
-    content = request.form['content']
-    cursor.execute("""
-        UPDATE messages SET content = %s WHERE message_id = %s
-    """, (content, message_id))
-    conn.commit()
-    flash('Message updated successfully!', 'success')
-    return redirect(url_for('community'))
+    if not cursor or not conn:
+        flash('Database connection error', 'error')
+        return redirect(url_for('community'))
 
+    user_id = session.get('user_id')
+    content = request.form.get('content')
+    print(f"Editing message ID: {message_id} with content: {content}")
+
+    # Fetch the message to verify permissions
+    cursor.execute("SELECT user_id FROM messages WHERE message_id = %s", (message_id,))
+    message = cursor.fetchone()
+    print(f"Fetched message details: {message}")
+
+    # Check if the user is the owner or has admin/moderator rights
+    if message and (message['user_id'] == user_id or 'admin' in session or 'moderator' in session):
+        cursor.execute("UPDATE messages SET content = %s WHERE message_id = %s", (content, message_id))
+        conn.commit()
+        flash('Message updated successfully!', 'success')
+        print(f"Message {message_id} updated successfully.")
+    else:
+        flash('You do not have permission to edit this message.', 'error')
+        print(f"Permission denied for editing message {message_id}.")
+
+    return redirect(url_for('community'))
+  
+  #----like and dislike message
 @app.route('/like_message/<int:message_id>', methods=['POST'])
 def like_message(message_id):
     cursor, conn = getCursor(dictionary=True)
@@ -233,27 +273,58 @@ def dislike_reply(reply_id):
     conn.commit()
     return redirect(url_for('community'))
 
+#-------delete reply
+
+@app.route('/delete_reply/<int:reply_id>', methods=['POST'])
+def delete_reply(reply_id):
+    cursor, conn = getCursor(dictionary=True)
+    if not cursor or not conn:
+        flash('Database connection error', 'error')
+        return redirect(url_for('community'))
+
+    user_id = session.get('user_id')
+    cursor.execute("SELECT user_id FROM replies WHERE reply_id = %s", (reply_id,))
+    reply = cursor.fetchone()
+
+    # Check if the user is the owner or has the correct role
+    if reply and (reply['user_id'] == user_id or 'admin' in session or 'moderator' in session):
+        cursor.execute("DELETE FROM replies WHERE reply_id = %s", (reply_id,))
+        conn.commit()
+        flash('Reply deleted successfully!', 'success')
+    else:
+        flash('You do not have permission to delete this reply.', 'error')
+
+    return redirect(url_for('community'))
+
+# -------edit reply-----
 
 @app.route('/edit_reply/<int:reply_id>', methods=['POST'])
 def edit_reply(reply_id):
     cursor, conn = getCursor(dictionary=True)
-    content = request.form['content']
-    cursor.execute("""
-        UPDATE replies SET content = %s WHERE reply_id = %s
-    """, (content, reply_id))
-    conn.commit()
-    flash('Reply updated successfully!', 'success')
-    return redirect(url_for('community'))
+    if not cursor or not conn:
+        flash('Database connection error', 'error')
+        return redirect(url_for('community'))
 
-@app.route('/delete_reply/<int:reply_id>', methods=['POST'])
-def delete_reply(reply_id):
-    cursor, conn = getCursor()
-    user_id = session.get('user_id', 1)
-    cursor.execute("DELETE FROM replies WHERE reply_id = %s AND user_id = %s", (reply_id, user_id))
-    conn.commit()
-    flash('Reply deleted successfully!', 'success')
+    user_id = session.get('user_id')
+    content = request.form.get('content')
+    print(f"Editing reply ID: {reply_id} with content: {content}")
+
+    # Fetch the reply to verify permissions
+    cursor.execute("SELECT user_id FROM replies WHERE reply_id = %s", (reply_id,))
+    reply = cursor.fetchone()
+    print(f"Fetched reply details: {reply}")
+
+    # Check if the user is the owner or has admin/moderator rights
+    if reply and (reply['user_id'] == user_id or 'admin' in session or 'moderator' in session):
+        cursor.execute("UPDATE replies SET content = %s WHERE reply_id = %s", (content, reply_id))
+        conn.commit()
+        flash('Reply updated successfully!', 'success')
+        print(f"Reply {reply_id} updated successfully.")
+    else:
+        flash('You do not have permission to edit this reply.', 'error')
+        print(f"Permission denied for editing reply {reply_id}.")
+
     return redirect(url_for('community'))
-  
 
 if __name__ == '__main__':
     app.run(debug=True)
